@@ -8,10 +8,22 @@ import java.util.Comparator;
 
 public class UAInvertedIndex {
 
+  /*
+  temp file
+  term, document ID, term frequency (within document)
+
+  post.raf -- the documents where the term appears
+  document ID, term frequency (within document) or rtf*idf
+
+  dict.raf -- the global hash table
+  term or termID, document count, start
+
+  map.raf
+  */
+
   static final int RECORD_LENGTH = 20;
   static final int SUB = 4;
   static GlobalMap gh;
-  static int termID;
   //static int seed = 3000000;
   static int seed = 25;
 
@@ -27,10 +39,9 @@ public class UAInvertedIndex {
     File outDir = new File(args[1]);
 
     gh = new GlobalMap(seed); // initialize global hash table.
-    termID = 0;
 
-    algoOne(inDir,outDir);
-    algoTwo(outDir);
+    //algoOne(inDir,outDir);
+    //algoTwo(outDir);
 
     /*
     try {
@@ -54,58 +65,14 @@ public class UAInvertedIndex {
 
   }
 
-  /*
-    Try to perform the merge here?
-    Instead of 1 : 1 , try consolidating the files.
-
-    Use an array for the files, then merge pairs of files.
-    Writing the new temp file to disk.
-
-    Open leftmost file, don't treat it like an array.
-    Make rightmost files null as we merge, & delete them on filesystem.
-    Or, just always read the leftmost, or first, file.
-
-    We're writing a new temp file each time, but we need to access them later
-    when merging.
-  */
-
-  public static void algoMerge(File inDir) {
-
-    try {
-
-
-
-    } catch(Exception ex) {
-      ex.printStackTrace();
-      System.exit(1);
-    }
-
-  }
-
-  public static void merge(File[] in, int p, int r) {
-
-    try {
-
-
-
-    } catch(Exception ex) {
-      ex.printStackTrace();
-      System.exit(1);
-    }
-
-  }
-
-  //----------------------------------------------------------------------------
-
   public static void algoOne(File inDir, File outDir) {
-    SortedMap<String, Integer> ht;
+    SortedMap<String, Integer> ht;  // Sort all ht entries by term alphabetically.
     BufferedReader br;
-    BufferedWriter bw;
-    TermData t;
     String read;
     int totalFreq;
 
     int docID = 0;
+    int termID = 0;
 
     try {
 
@@ -125,32 +92,10 @@ public class UAInvertedIndex {
           totalFreq++;
         }
 
-        bw = new BufferedWriter(new FileWriter(outDir.getPath()+"/doc"+docID+".temp")); // Open new temporary file f.
-
-        // for all term t in document hash table ht, do
-
-        for(Map.Entry<String,Integer> entry : ht.entrySet()) {
-
-          if( ( t = gh.get( entry.getKey() ) ) != null ) {
-
-            t.setCount(t.getCount() + 1);
-            gh.put(t);
-
-          } else {
-
-            t = new TermData(entry.getKey(),termID,1); // put(t, <termID, # documents = 1>)
-            gh.put(t);
-            termID = termID + 1;
-
-          } // if a term hasn't been found in prior documents.
-
-          bw.write( formatRecord(entry.getKey()) +" "+ docID +" "+ entry.getValue() +"\n"); // f.write(t, documentID, termFrequency (or tf / totalFrequency));
-
-        } // Sort all ht entries by term alphabetically.
+        termID = writeTempFile(outDir, ht, docID, termID);
 
         docID++;
         br.close();
-        bw.close(); // close temp file f.
       }
 
     } catch(Exception ex) {
@@ -159,12 +104,45 @@ public class UAInvertedIndex {
     }
   }
 
+  public static int writeTempFile(File outDir, SortedMap<String, Integer> ht, int docID, int termID) throws IOException {
+
+    BufferedWriter bw = new BufferedWriter(new FileWriter(outDir.getPath()+"/doc"+docID+".temp")); // Open new temporary file f.
+    TermData t;
+
+    for(Map.Entry<String,Integer> entry : ht.entrySet()) {
+
+      if( ( t = gh.get( entry.getKey() ) ) != null ) {
+
+        t.setCount(t.getCount() + 1);
+        gh.put(t);
+
+      } else {
+
+        t = new TermData(entry.getKey(),termID,1); // put(t, <termID, # documents = 1>)
+        gh.put(t);
+        termID = termID + 1;
+
+      } // if a term hasn't been found in prior documents.
+
+      bw.write( formatRecord(entry.getKey()) +" "+ docID +" "+ entry.getValue() +"\n"); // f.write(t, documentID, termFrequency (or tf / totalFrequency));
+
+    }  // for all term t in document hash table ht, do
+    bw.close();  // close temp file f.
+
+    return termID;
+  }
+
   public static void algoTwo(File input) {
     String top = "";
     int topInd = 0;
 
     try {
       File[] files = input.listFiles();
+
+      /*
+
+      */
+
       BufferedReader[] br = new BufferedReader[files.length];
 
       for(int a = 0; a < files.length; a++) {
@@ -220,30 +198,36 @@ public class UAInvertedIndex {
         b.close();
       }
 
-      RandomAccessFile dict = new RandomAccessFile("dict.raf","rw"); //write global hash table to disk as dictionary file dict.raf
-      String s;
-      int c;
-
-      for(TermData t : gh.map) {
-
-        if(t != null) {
-          s = t.getT();
-          c = t.getCount();
-        } else {
-          s = "NA";
-          c = -1;
-        }
-
-        dict.writeUTF( formatRecord(s) );
-        dict.writeInt( c );
-      }
-
-      dict.close();
+      writeDictionary();
 
     } catch(IOException ex) {
       ex.printStackTrace();
       System.exit(1);
     }
+
+  }
+
+  public static void writeDictionary() throws IOException {
+
+    RandomAccessFile dict = new RandomAccessFile("dict.raf","rw"); //write global hash table to disk as dictionary file dict.raf
+    String s;
+    int c;
+
+    for(TermData t : gh.map) {
+
+      if(t != null) {
+        s = t.getT();
+        c = t.getCount();
+      } else {
+        s = "NA";
+        c = -1;
+      }
+
+      dict.writeUTF( formatRecord(s) );
+      dict.writeInt( c );
+    }
+
+    dict.close();
 
   }
 
@@ -290,5 +274,109 @@ public class UAInvertedIndex {
       else A[k] = R[j]
         j = j + 1
   */
+
+  /*
+    Try to perform the merge here?
+    Instead of 1 : 1 , try consolidating the files.
+
+    Use an array for the files, then merge pairs of files.
+    Writing the new temp file to disk.
+
+    Open leftmost file, don't treat it like an array.
+    Make rightmost files null as we merge, & delete them on filesystem.
+    Or, just always read the leftmost, or first, file.
+
+    We're writing a new temp file each time, but we need to access them later
+    when merging.
+  */
+
+  /*
+  public static void mergeSort(String[] A, int p, int r) {
+
+    try {
+
+      if((p) < r) {
+
+        int q = (p+r)/2;
+        mergeSort(A,p,q);
+        mergeSort(A,q+1,r);
+        merge(A,p,q,r);
+
+        for(int i = 0; i < A.length; i++) {
+          System.out.print("[ "+i+" "+A[i] + "] ");
+        }
+        System.out.println();
+
+      }
+
+    } catch(Exception ex) {
+      ex.printStackTrace();
+      System.exit(1);
+    }
+
+  }
+
+  public static void merge(String[] A, int p, int q, int r) {
+
+    String G = "";
+
+    try {
+
+      int n1 = q-p + 1;
+      int n2 = r-q;
+
+      String[] L = new String[n1];
+      String[] R = new String[n2];
+
+      int x = 0;
+      for(int i = 0; i < n1; i++) {
+        L[x] = new String(A[p+i]);
+        A[p+i] = "";
+        x++;
+      }
+
+      int y = 0;
+      for(int j = 0; j < n2; j++) {
+        R[y] = new String(A[q+1+j]);
+        A[q+1+j] = "";
+        y++;
+      }
+
+      int i = 0;
+      int j = 0;
+
+      while( i < n1 & j < n2 ) {
+
+        if(L[i].compareToIgnoreCase(R[j]) <= 0) {
+
+          A[p] += L[i] +" ";
+          i++;
+
+        } else {
+          A[q] += R[j] +" ";
+          j++;
+        }
+
+      }
+
+      while(i < n1) {
+        if(L[i] != null) {
+          A[p] += L[i] +" ";
+          i++;
+        }
+      }
+      while(j < n2) {
+        if(R[j] != null) {
+          A[q] += R[j] +" ";
+          j++;
+        }
+      }
+
+    } catch(Exception ex) {
+      ex.printStackTrace();
+      System.exit(1);
+    }
+
+  }*/
 
 }
