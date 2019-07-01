@@ -17,15 +17,13 @@ public class GlobalMap {
 
   public void put(TermData t) {
 
-    if( (double) count / this.map.length > 0.75 ) {
-      resizeTable(1.33);
+    while(!add(this.map, t)) {
+      resizeTable(1.20);
     }
 
-    add(this.map, t);
   }
 
   public boolean add(TermData[] m, TermData t) {
-
     int h;
 
     for(int i = 0; i < m.length; i++) {
@@ -46,14 +44,16 @@ public class GlobalMap {
   }
 
   public TermData get(String str) {
+    int h;
 
     for(int i = 0; i < this.map.length; i++) {
+      h = hash(str,i);
 
-      if(this.map[hash(str,i)] == null) {
+      if(this.map[ h ] == null) {
         break;
       } else {
-        if(this.map[hash(str,i)].getT().compareTo(str) == 0) {
-          return this.map[hash(str,i)];
+        if(this.map[ h ].getT().compareTo(str) == 0) {
+          return this.map[ h ];
         }
       }
 
@@ -64,7 +64,7 @@ public class GlobalMap {
 
   public void resizeTable(double inc) {
 
-    TermData[] newMap = new TermData[(int)(this.map.length*inc)];
+    TermData[] newMap = new TermData[(int)(this.map.length*inc) + 1];
 
     for(TermData t : this.map) {
       add(newMap,t);
