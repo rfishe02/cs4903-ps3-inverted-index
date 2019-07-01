@@ -117,37 +117,18 @@ public class UAInvertedIndex {
   }
 
   public static void algoTwo(File input) {
+    String top = "";
+    int topInd = 0;
 
     try {
       File[] files = input.listFiles();
       BufferedReader[] br = new BufferedReader[files.length];
 
-      int i = 0;
-      for(File f : files) {
-        br[i] = new BufferedReader(new FileReader(f));
-        i++;
+      for(int a = 0; a < files.length; a++) {
+
+        br[a] = new BufferedReader(new FileReader(files[a]));
 
       }
-
-      RandomAccessFile post = new RandomAccessFile("post.raf","rw"); // Create & open a new file for postings, post.raf
-      String read;
-      int nullCount = 0;
-      int recordCount = 0;
-
-      while(nullCount < br.length) {
-        nullCount = 0;
-
-        for(BufferedReader b : br) {
-          if((read = b.readLine())!=null) {
-
-          } else {
-            nullCount++;
-          }
-        }
-
-      }
-
-      System.out.println("DONE!");
 
       // while all postings haven't been written do
       // find token that is alphabetically first in the buffer
@@ -160,6 +141,43 @@ public class UAInvertedIndex {
 
       // read the next record from the file
       // recordCount = recordCount + 1;
+
+      RandomAccessFile post = new RandomAccessFile("post.raf","rw"); // Create & open a new file for postings, post.raf
+      String read = "";
+      int nullCount = 0;
+      int recordCount = 0;
+
+      while(nullCount < br.length) {
+
+        br[topInd].mark(100);
+        top = br[topInd].readLine();
+        nullCount = 0;
+
+        for(int b = 0; b < br.length; b++) {
+
+          br[b].mark(100);
+          if((read = br[b].readLine()) != null) {
+
+            if(read.compareTo(top) < 0) {
+
+              br[topInd].reset();
+              top = read;
+              topInd = b;
+
+            } else {
+              br[b].reset();
+            }
+
+          } else {
+            nullCount++;
+          }
+
+        }
+
+        System.out.println(top);
+      }
+
+      System.out.println("DONE!");
 
       post.close();
 
