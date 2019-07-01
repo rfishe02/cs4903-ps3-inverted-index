@@ -9,6 +9,7 @@ import java.util.Comparator;
 public class UAInvertedIndex {
 
   static final int RECORD_LENGTH = 20;
+  static final int SUB = 4;
   static GlobalMap gh;
   static int termID;
   //static int seed = 3000000;
@@ -100,7 +101,7 @@ public class UAInvertedIndex {
 
           } // if a term hasn't been found in prior documents.
 
-          bw.write(entry.getKey() +" "+ docID +" "+ entry.getValue() +"\n"); // f.write(t, documentID, termFrequency (or tf / totalFrequency));
+          bw.write( formatRecord(entry.getKey()) +" "+ docID +" "+ entry.getValue() +"\n"); // f.write(t, documentID, termFrequency (or tf / totalFrequency));
 
         } // Sort all ht entries by term alphabetically.
 
@@ -121,8 +122,6 @@ public class UAInvertedIndex {
       File[] files = input.listFiles();
       BufferedReader[] br = new BufferedReader[files.length];
 
-      int recordCount = 0;
-
       int i = 0;
       for(File f : files) {
         br[i] = new BufferedReader(new FileReader(f));
@@ -130,9 +129,25 @@ public class UAInvertedIndex {
 
       }
 
-      RandomAccessFile post = new RandomAccessFile("post.raf","rw");
+      RandomAccessFile post = new RandomAccessFile("post.raf","rw"); // Create & open a new file for postings, post.raf
+      String read;
+      int nullCount = 0;
+      int recordCount = 0;
 
-      // Create & open a new file for postings, post.raf
+      while(nullCount < br.length) {
+        nullCount = 0;
+
+        for(BufferedReader b : br) {
+          if((read = b.readLine())!=null) {
+
+          } else {
+            nullCount++;
+          }
+        }
+
+      }
+
+      System.out.println("DONE!");
 
       // while all postings haven't been written do
       // find token that is alphabetically first in the buffer
@@ -152,9 +167,8 @@ public class UAInvertedIndex {
         b.close();
       }
 
-      //write global hash table to disk as dictionary file dict.raf
 
-      RandomAccessFile dict = new RandomAccessFile("dict.raf","rw");
+      RandomAccessFile dict = new RandomAccessFile("dict.raf","rw"); //write global hash table to disk as dictionary file dict.raf
       String s;
       int c;
 
@@ -168,7 +182,7 @@ public class UAInvertedIndex {
           c = -1;
         }
 
-        dict.writeUTF( formatRecord(s,4) );
+        dict.writeUTF( formatRecord(s) );
         dict.writeInt( c );
       }
 
@@ -181,8 +195,8 @@ public class UAInvertedIndex {
 
   }
 
-  public static String formatRecord(String str, int sub) {
-    int len = RECORD_LENGTH - sub;
+  public static String formatRecord(String str) {
+    int len = RECORD_LENGTH - SUB;
     if(str.length() > (len)) {
       str = str.substring(0,len);
     }
@@ -192,6 +206,13 @@ public class UAInvertedIndex {
   static class TermComparator implements Comparator<String> {
     public int compare(String s1, String s2) {
       return s1.compareToIgnoreCase(s2);
+    }
+  }
+
+  static class LineComparator implements Comparator<String> {
+    int len = RECORD_LENGTH - SUB;
+    public int compare(String s1, String s2) {
+      return s1.substring(0,len).compareToIgnoreCase(s2.substring(0,len));
     }
   }
 
