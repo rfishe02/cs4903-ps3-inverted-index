@@ -54,6 +54,42 @@ public class UAInvertedIndex {
 
   }
 
+  /*
+    Try to perform the merge here?
+    Instead of 1 : 1 , try consolidating the files.
+
+    Use an array for the files, then merge pairs of files.
+    Writing the new temp file to disk.
+  */
+
+  public static void algoMerge(File inDir) {
+
+    try {
+
+
+
+    } catch(Exception ex) {
+      ex.printStackTrace();
+      System.exit(1);
+    }
+
+  }
+
+  public static void merge(File[] in, int p, int r) {
+
+    try {
+
+      
+
+    } catch(Exception ex) {
+      ex.printStackTrace();
+      System.exit(1);
+    }
+
+  }
+
+  //----------------------------------------------------------------------------
+
   public static void algoOne(File inDir, File outDir) {
     SortedMap<String, Integer> ht;
     BufferedReader br;
@@ -177,7 +213,6 @@ public class UAInvertedIndex {
         b.close();
       }
 
-
       RandomAccessFile dict = new RandomAccessFile("dict.raf","rw"); //write global hash table to disk as dictionary file dict.raf
       String s;
       int c;
@@ -218,5 +253,35 @@ public class UAInvertedIndex {
       return s1.compareToIgnoreCase(s2);
     }
   }
+
+  //----------------------------------------------------------------------------
+
+  /*
+  MERGE-SORT(A,p,r)
+    if p < r
+      q = floor( (p+r)/2 )
+      MERGE-SORT(A,p,q)
+      MERGE-SORT(A,q+1,r)
+      MERGE(A,p,q,r)
+
+  MERGE(A,p,q,r)
+    n1 = q-p + 1
+    n2 = r-q
+    let L[1 .. n1 + 1] and R[1 .. n2 + 1] be new arrays (two open files)
+    for i = 1 to n1
+      L[i] = A[p+i-1]
+    for j = 1 to n2
+      R[j] = A[q+j]
+    L[n1 + 1] = infinity
+    R[n2 + 1] = infinity
+    i = 1
+    j = 1
+    for k = p to r
+      if L[i] <= R[j]
+        A[k] = L[i] (What is A? A RAF? A newer, slightly bigger file? What if we used filnames? Index locations?)
+        i = i + 1
+      else A[k] = R[j]
+        j = j + 1
+  */
 
 }
