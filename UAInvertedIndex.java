@@ -60,6 +60,10 @@ public class UAInvertedIndex {
 
     Use an array for the files, then merge pairs of files.
     Writing the new temp file to disk.
+
+    Open leftmost file, don't treat it like an array.
+    Make rightmost files null as we merge, & delete them on filesystem.
+    Or, just always read the leftmost, or first, file.
   */
 
   public static void algoMerge(File inDir) {
@@ -79,7 +83,7 @@ public class UAInvertedIndex {
 
     try {
 
-      
+
 
     } catch(Exception ex) {
       ex.printStackTrace();
