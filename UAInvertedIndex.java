@@ -44,7 +44,7 @@ public class UAInvertedIndex {
     //algoTwo(outDir);
 
     //File[] test = new File[10];
-    String[] test = {"A","B","C","D","E","F","G","H","I","J","K","L"};
+    String[] test = {"A","B","C","D","E","F","G"};
     mergeSort(test,test.length);
 
     /*
@@ -255,7 +255,7 @@ public class UAInvertedIndex {
 
     try {
 
-      for(int c = 1; c < n-2; c = 2 * c) {
+      for(int c = 1; c < n-1; c = 2 * c) {
 
         for(int p = 0; p < n-1; p += 2 * c) {
 
@@ -298,14 +298,12 @@ public class UAInvertedIndex {
 
     int i = 0;
     int j = 0;
-    //int k = p;
 
     while( i < n1 && j < n2) {
 
       if(L[i].compareTo(R[j]) <= 0) {
-        //A[k] = L[i];
 
-        if(p % 2 == 0) {
+        if(p % 4 == 0) {
           A[p] += L[i];
         } else {
           A[r] += L[i];
@@ -313,9 +311,8 @@ public class UAInvertedIndex {
 
         i++;
       } else {
-        //A[k] = R[j];
 
-        if(p % 2 == 0) {
+        if(p % 4 == 0) {
           A[p] += R[j];
         } else {
           A[r] += R[j];
@@ -323,32 +320,26 @@ public class UAInvertedIndex {
 
         j++;
       }
-      //k++;
     }
 
     while(i < n1) {
-      //A[k] = L[i];
-
-      if(p % 2 == 0) {
+      if(p % 4 == 0) {
         A[p] += L[i];
       } else {
         A[r] += L[i];
       }
 
       i++;
-      //k++;
     }
     while(j < n2) {
-      //A[k] = R[j];
 
-      if(p % 2 == 0) {
+      if(p % 4 == 0) {
         A[p] += R[j];
       } else {
         A[r] += R[j];
       }
 
       j++;
-      //k++;
     }
   }
 }
