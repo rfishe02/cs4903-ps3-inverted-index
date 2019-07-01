@@ -125,22 +125,8 @@ public class UAInvertedIndex {
       BufferedReader[] br = new BufferedReader[files.length];
 
       for(int a = 0; a < files.length; a++) {
-
         br[a] = new BufferedReader(new FileReader(files[a]));
-
       }
-
-      // while all postings haven't been written do
-      // find token that is alphabetically first in the buffer
-      // update the start field for the token in the global hash table.
-
-      // calculate inverse document frequency for term from gh(t).numberOfDocuments
-
-      // for all files, if files[i] is alphabetically first (?)
-      // write postings record for the token (documentID, termFrequency, OR rtf * idf)
-
-      // read the next record from the file
-      // recordCount = recordCount + 1;
 
       RandomAccessFile post = new RandomAccessFile("post.raf","rw"); // Create & open a new file for postings, post.raf
       String read = "";
@@ -158,7 +144,7 @@ public class UAInvertedIndex {
           br[b].mark(100);
           if((read = br[b].readLine()) != null) {
 
-            if(read.compareTo(top) < 0) {
+            if(read.substring(0,(RECORD_LENGTH - SUB)).compareTo(top.substring(0,(RECORD_LENGTH - SUB))) < 0) {
 
               br[topInd].reset();
               top = read;
@@ -172,10 +158,16 @@ public class UAInvertedIndex {
             nullCount++;
           }
 
-        }
+        } // find token that is alphabetically first in the buffer
 
-        System.out.println(top);
-      }
+        System.out.println(top); // Need to write to postings.
+
+        // update the start field for the token in the global hash table.
+        // calculate inverse document frequency for term from gh(t).numberOfDocuments
+        // write postings record for the token (documentID, termFrequency, OR rtf * idf)
+        // recordCount = recordCount + 1;
+
+      } // while all postings haven't been written do
 
       System.out.println("DONE!");
 
@@ -224,13 +216,6 @@ public class UAInvertedIndex {
   static class TermComparator implements Comparator<String> {
     public int compare(String s1, String s2) {
       return s1.compareToIgnoreCase(s2);
-    }
-  }
-
-  static class LineComparator implements Comparator<String> {
-    int len = RECORD_LENGTH - SUB;
-    public int compare(String s1, String s2) {
-      return s1.substring(0,len).compareToIgnoreCase(s2.substring(0,len));
     }
   }
 
