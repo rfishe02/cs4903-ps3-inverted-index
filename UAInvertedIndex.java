@@ -64,6 +64,9 @@ public class UAInvertedIndex {
     Open leftmost file, don't treat it like an array.
     Make rightmost files null as we merge, & delete them on filesystem.
     Or, just always read the leftmost, or first, file.
+
+    We're writing a new temp file each time, but we need to access them later
+    when merging.
   */
 
   public static void algoMerge(File inDir) {
