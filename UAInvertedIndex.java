@@ -293,16 +293,15 @@ public class UAInvertedIndex {
 
   public static void merge(File[] A, int p, int q, int r) throws IOException {
 
-    BufferedReader L = new BufferedReader( new FileReader(A[p]) ); // Open the files at the given indices.
-    BufferedReader R;
-
+    int z = q;
     if((q + 1) < A.length) {
-      R = new BufferedReader( new FileReader(A[q + 1]) );
-    } else {
-      R = new BufferedReader( new FileReader(A[q]) );
+      z = q + 1;
     }
 
-    String filename = "test/"+p+""+(q+1)+""+r+".tmp";
+    BufferedReader L = new BufferedReader( new FileReader(A[p]) ); // Open the files at the given indices.
+    BufferedReader R = new BufferedReader( new FileReader(A[z]) );
+
+    String filename = "test/"+p+""+z+""+r+".tmp";
     BufferedWriter bw = new BufferedWriter(new FileWriter(filename)); // Create a new file, which will contain the merged data.
     String s1 = L.readLine();
     String s2 = R.readLine();
@@ -332,14 +331,8 @@ public class UAInvertedIndex {
     if(A[p].exists()) {
       A[p].delete();
     } // Remove the original files.
-    if((q + 1) < A.length) {
-      if(A[q + 1].exists()) {
-        A[q + 1].delete();
-      }
-    } else {
-      if(A[q].exists()) {
-        A[q].delete();
-      }
+    if(A[z].exists()) {
+      A[z].delete();
     }
 
     A[p] = new File(filename); // Replace the file at A[p]. Future merges will use the newly merged file.
