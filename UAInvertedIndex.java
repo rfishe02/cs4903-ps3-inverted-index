@@ -8,19 +8,6 @@ import java.util.Comparator;
 
 public class UAInvertedIndex {
 
-  /*
-  temp file
-  term, document ID, term frequency (within document)
-
-  post.raf -- the documents where the term appears
-  document ID, term frequency (within document) or rtf*idf
-
-  dict.raf -- the global hash table
-  term or termID, document count, start
-
-  map.raf
-  */
-
   static final int RECORD_LENGTH = 20;
   static final int SUB = 4;
   static GlobalMap gh;
@@ -44,14 +31,14 @@ public class UAInvertedIndex {
 
   }
 
-  public void buildInvertedIndex(File inDir, File outDir) {
+  public static void buildInvertedIndex(File inDir, File outDir) {
 
-    algoOne(inDir,outDir);
+    algoOne(inDir,new File("temp"));
 
-    File[] test = (new File("output/")).listFiles();
-    mergeSort(test,test.length);
+    File[] tmp = (new File("temp/")).listFiles();
+    mergeSort(tmp,tmp.length);
 
-    //algoTwo(outDir);
+    algoTwo(new File("tmp/"),outDir);
 
   }
 
@@ -122,20 +109,20 @@ public class UAInvertedIndex {
     return termID;
   }
 
-  public static void algoTwo(File input) {
+  public static void algoTwo(File inDir, File outDir) {
     String top = "";
     int topInd = 0;
 
     try {
-      File[] files = input.listFiles();
 
+      File[] files = inDir.listFiles();
       BufferedReader[] br = new BufferedReader[files.length];
 
       for(int a = 0; a < files.length; a++) {
         br[a] = new BufferedReader(new FileReader(files[a]));
       }
 
-      RandomAccessFile post = new RandomAccessFile("post.raf","rw"); // Create & open a new file for postings, post.raf
+      RandomAccessFile post = new RandomAccessFile(outDir.getPath()+"/post.raf","rw"); // Create & open a new file for postings, post.raf
       String read = "";
       int nullCount = 0;
       int recordCount = 0;
@@ -184,7 +171,7 @@ public class UAInvertedIndex {
         b.close();
       }
 
-      writeDictionary();
+      writeDictionary(outDir);
 
     } catch(IOException ex) {
       ex.printStackTrace();
@@ -193,9 +180,9 @@ public class UAInvertedIndex {
 
   }
 
-  public static void writeDictionary() throws IOException {
+  public static void writeDictionary(File outDir) throws IOException {
 
-    RandomAccessFile dict = new RandomAccessFile("dict.raf","rw"); //write global hash table to disk as dictionary file dict.raf
+    RandomAccessFile dict = new RandomAccessFile(outDir.getPath()+"/dict.raf","rw"); //write global hash table to disk as dictionary file dict.raf
     String s;
     int c;
 
@@ -233,7 +220,8 @@ public class UAInvertedIndex {
 
   /** Use an iterative merge sort to combine files. The basis for this sort is
       directly from the bottom up sort shown on Wikipedia. However, the merge
-      portion is different from the example on the website.
+      portion is different from the example on the website. It doesn't iterate over
+      the array, it just uses the value p to combine files.
   */
 
   public static void mergeSort(File[] A, int n) {
@@ -253,7 +241,6 @@ public class UAInvertedIndex {
             int r = Math.min(p + 2*(c-1), n-1);
 
             if((q+1) < A.length) {
-              System.out.println(p+" "+(q+1)+" "+r);
               merge(A, p, q, r);
             }
           }
@@ -282,15 +269,12 @@ public class UAInvertedIndex {
   */
 
   public static void merge(File[] A, int p, int q, int r) throws IOException {
-    int z = q;
-    if((q + 1) < A.length) {
-      z = q + 1;
-    }
+    int z = z = q + 1;
 
     BufferedReader L = new BufferedReader( new FileReader(A[p]) ); // Open the files at the given indices.
     BufferedReader R = new BufferedReader( new FileReader(A[z]) );
 
-    String filename = "test/"+p+""+z+""+r+".tmp";
+    String filename = "tmp/"+p+""+z+""+r+".tmp";
     BufferedWriter bw = new BufferedWriter(new FileWriter(filename)); // Create a new file, which will contain the merged data.
     String s1 = L.readLine();
     String s2 = R.readLine();

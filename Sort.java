@@ -2,6 +2,19 @@
 public class Sort {
 
   /*
+  temp file
+  term, document ID, term frequency (within document)
+
+  post.raf -- the documents where the term appears
+  document ID, term frequency (within document) or rtf*idf
+
+  dict.raf -- the global hash table
+  term or termID, document count, start
+
+  map.raf
+  */
+
+  /*
   try {
     RandomAccessFile test = new RandomAccessFile("dict.raf","rw");
 
