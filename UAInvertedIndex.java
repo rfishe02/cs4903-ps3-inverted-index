@@ -41,24 +41,11 @@ public class UAInvertedIndex {
     gh = new GlobalMap(seed); // initialize global hash table.
 
     algoOne(inDir,outDir);
-    //algoTwo(outDir);
 
     File[] test = (new File("output/")).listFiles();
     mergeSort(test,test.length);
 
-    /*
-    try {
-      RandomAccessFile test = new RandomAccessFile("dict.raf","rw");
-
-      test.seek(gh.hash("cat",0) * (RECORD_LENGTH + 2));
-      String record = test.readUTF();
-      int count = test.readInt();
-
-      System.out.println(record+" "+count);
-
-    } catch(IOException ex) {
-      ex.printStackTrace();
-    }*/
+    //algoTwo(outDir);
 
   }
 
@@ -141,10 +128,6 @@ public class UAInvertedIndex {
 
     try {
       File[] files = input.listFiles();
-
-      /*
-
-      */
 
       BufferedReader[] br = new BufferedReader[files.length];
 
@@ -255,28 +238,33 @@ public class UAInvertedIndex {
 
   public static void mergeSort(File[] A, int n) {
 
+    int size;
+
     try {
 
       for(int c = 1; c < n; c = 2 * c) {
 
-        for(int p = 0; p < n-1; p += 2 * c) {
+        size = (int)( (double)(n-1) / c ); // Stop when the split reaches a certain size?
 
-          int q = Math.min(p + (c-1), n-1);
-          int r = Math.min(p + 2*(c-1), n-1);
+        if(size > Math.sqrt(A.length)) {
+          for(int p = 0; p < n-1; p += 2 * c) {
 
-          if((q+1) < A.length) {
-            System.out.println(p+" "+(q+1)+" "+r);
-            merge(A, p, q, r);
+            int q = Math.min(p + (c-1), n-1);
+            int r = Math.min(p + 2*(c-1), n-1);
+
+            if((q+1) < A.length) {
+              System.out.println(p+" "+(q+1)+" "+r);
+              merge(A, p, q, r);
+            }
           }
-
+        } else {
+          break;
         }
-
       }
 
     } catch(Exception ex) {
       ex.printStackTrace();
     }
-
   }
 
   /** Instead of iterating accross the whole array, it opens the files at p and q, or q+1,

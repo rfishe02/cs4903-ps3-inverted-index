@@ -1,6 +1,20 @@
 
 public class Sort {
 
+  /*
+  try {
+    RandomAccessFile test = new RandomAccessFile("dict.raf","rw");
+
+    test.seek(gh.hash("cat",0) * (RECORD_LENGTH + 2));
+    String record = test.readUTF();
+    int count = test.readInt();
+
+    System.out.println(record+" "+count);
+
+  } catch(IOException ex) {
+    ex.printStackTrace();
+  }*/
+
   public static void algoTwo(File input) {
     String top = "";
     int topInd = 0;
