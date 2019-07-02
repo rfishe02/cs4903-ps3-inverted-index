@@ -249,7 +249,10 @@ public class UAInvertedIndex {
     }
   }
 
-  //----------------------------------------------------------------------------
+  /** Use an iterative merge sort to combine files. The basis for this sort is
+      directly from the bottom up sort shown on Wikipedia. However, the merge
+      portion is unique and unlike the example on the website.
+  */
 
   public static void mergeSort(File[] A, int n) {
 
@@ -274,6 +277,20 @@ public class UAInvertedIndex {
     }
 
   }
+
+  /** Instead of iterating accross the whole array, it opens the files at p and q, or q+1,
+     and merges them. It erases the previous files and stores the new file at A[p].
+     Eventually, it merges all files stored at A[p].
+
+     If we have five files, the method would merge files until it merges the
+     files at index 0 and 4. The last merge creates a file that holds the data of all
+     other files.
+
+     p: 0  q: 1 --> merge the files at index zero and one.
+     p: 2  q: 3 --> merge the files at index two and three.
+     p: 0  q: 2 --> merge the files at index zero and two.
+     p: 0  q: 4 --> merge the files at index zero and four.
+  */
 
   public static void merge(File[] A, int p, int q, int r) throws IOException {
 
@@ -300,9 +317,8 @@ public class UAInvertedIndex {
       } else {
         bw.write(s2+"\n"+s1+"\n");
       }
-
+      
     }
-
     while((s1 = L.readLine()) != null) {
       bw.write(s1+"\n");
     }
