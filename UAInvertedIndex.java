@@ -169,8 +169,6 @@ public class UAInvertedIndex {
 
       } // while all postings haven't been written do
 
-      System.out.println("DONE!");
-
       post.close();
 
       for(BufferedReader b : br) {
