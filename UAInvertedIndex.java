@@ -43,8 +43,8 @@ public class UAInvertedIndex {
     //algoOne(inDir,outDir);
     //algoTwo(outDir);
 
-    //File[] test = new File[10];
-    String[] test = {"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"};
+    File[] test = (new File("output/")).listFiles();
+
     mergeSort(test,test.length);
 
     /*
@@ -251,26 +251,22 @@ public class UAInvertedIndex {
 
   //----------------------------------------------------------------------------
 
-  public static void mergeSort(String[] A, int n) {
+  public static void mergeSort(File[] A, int n) {
 
     try {
 
       for(int c = 1; c < n; c = 2 * c) {
 
-        for(int p = 0; p < (n - 1); p += 2 * c) {
+        for(int p = 0; p < n-1; p += 2 * c) {
 
-          int q = Math.min(p + (c - 1), n-1);
-          int r = Math.min(p + 2*(c - 1), n-1);
-
-          merge(A, p, q, r);
+          int q = Math.min(p + (c-1), n-1);
+          int r = Math.min(p + 2*(c-1), n-1);
 
           System.out.println(p+" "+(q+1)+" "+r);
-          for(int i = 0; i < A.length; i++) {
-            System.out.print(" [ "+i+" "+A[i]+" ] ");
-          }
-          System.out.println();
+          merge(A, p, q, r);
 
         }
+
       }
 
     } catch(Exception ex) {
@@ -279,35 +275,41 @@ public class UAInvertedIndex {
 
   }
 
-  public static void merge(String[] A, int p, int q, int r) throws IOException {
+  public static void merge(File[] A, int p, int q, int r) throws IOException {
 
-    String[] L = new String[1];
-    String[] R = new String[1];
+    BufferedReader L = new BufferedReader( new FileReader(A[p]) );
+    BufferedReader R;
+
+    if((q + 1) < A.length) {
+      R = new BufferedReader( new FileReader(A[q + 1]) );
+    } else {
+      R = new BufferedReader( new FileReader(A[q]) );
+    }
+
+    String filename = "test/"+p+""+(q+1)+""+r+".tmp";
+    BufferedWriter bw = new BufferedWriter(new FileWriter(filename));
+
+    String s1;
+    String s2;
+
+    while((s1 = L.readLine()) != null && (s2 = R.readLine()) != null) {
+
+      if(s1.compareTo(s2) <= 0) {
+        bw.write(s1+"\n"+s2+"\n");
+
+      } else {
+        bw.write(s2+"\n"+s1+"\n");
+      }
+
+    }
 
     System.out.println();
 
-    L[0] = A[p];
-    A[p] = "";
+    A[p] = new File(filename);
 
-    if((q + 1) < A.length) {
-      R[0] = A[q + 1];
-      A[q + 1] = "";
-    } else {
-      R[0] = A[q];
-      A[q] = "";
-    }
-
-    if(L[0].compareTo(R[0]) <= 0) {
-
-      A[p] += L[0];
-      A[p] += R[0];
-
-    } else {
-
-      A[p] += R[0];
-      A[p] += L[0];
-
-    }
+    L.close();
+    R.close();
+    bw.close();
 
   }
 }
