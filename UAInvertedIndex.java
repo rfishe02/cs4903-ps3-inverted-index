@@ -33,12 +33,12 @@ public class UAInvertedIndex {
 
   public static void buildInvertedIndex(File inDir, File outDir) {
 
-    algoOne(inDir,new File("temp"));
+    //algoOne(inDir,new File("temp"));
 
-    File[] tmp = (new File("temp/")).listFiles();
-    mergeSort(tmp,tmp.length);
+    //File[] tmp = (new File("temp")).listFiles();
+    //mergeSort(tmp,tmp.length);
 
-    algoTwo(new File("tmp/"),outDir);
+    algoTwo(new File("tmp"),outDir);
 
   }
 
@@ -138,6 +138,8 @@ public class UAInvertedIndex {
           br[b].mark(100);
           if((read = br[b].readLine()) != null) {
 
+            System.out.println(read+" "+top+" "+nullCount);
+
             if(read.substring(0,(RECORD_LENGTH - SUB)).compareTo(top.substring(0,(RECORD_LENGTH - SUB))) < 0) {
 
               br[topInd].reset();
@@ -154,7 +156,7 @@ public class UAInvertedIndex {
 
         } // find token that is alphabetically first in the buffer
 
-        System.out.println(top); // Need to write to postings.
+        //System.out.println(top); // Need to write to postings.
 
         // update the start field for the token in the global hash table.
         // calculate inverse document frequency for term from gh(t).numberOfDocuments
@@ -185,6 +187,8 @@ public class UAInvertedIndex {
     RandomAccessFile dict = new RandomAccessFile(outDir.getPath()+"/dict.raf","rw"); //write global hash table to disk as dictionary file dict.raf
     String s;
     int c;
+
+    System.out.println("HERE!");
 
     for(TermData t : gh.map) {
 
