@@ -40,7 +40,7 @@ public class UAInvertedIndex {
 
     gh = new GlobalMap(seed); // initialize global hash table.
 
-    //algoOne(inDir,outDir);
+    algoOne(inDir,outDir);
     //algoTwo(outDir);
 
     File[] test = (new File("output/")).listFiles();
@@ -262,6 +262,7 @@ public class UAInvertedIndex {
           int q = Math.min(p + (c-1), n-1);
           int r = Math.min(p + 2*(c-1), n-1);
 
+          System.out.println(p+" "+(q+1)+" "+r);
           merge(A, p, q, r);
 
         }
@@ -313,11 +314,19 @@ public class UAInvertedIndex {
     R.close();
     bw.close();
 
-    if((q+1) > 1) {
-      if(A[p].exists()) {
-        A[p].delete();
+    if(A[p].exists()) {
+      A[p].delete();
+    }
+    if((q + 1) < A.length) {
+      if(A[q + 1].exists()) {
+        A[q + 1].delete();
+      }
+    } else {
+      if(A[q].exists()) {
+        A[q].delete();
       }
     }
+
     A[p] = new File(filename);
 
   }
