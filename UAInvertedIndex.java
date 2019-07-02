@@ -264,8 +264,10 @@ public class UAInvertedIndex {
           int q = Math.min(p + (c-1), n-1);
           int r = Math.min(p + 2*(c-1), n-1);
 
-          System.out.println(p+" "+(q+1)+" "+r);
-          merge(A, p, q, r);
+          if((q+1) < A.length) {
+            System.out.println(p+" "+(q+1)+" "+r);
+            merge(A, p, q, r);
+          } 
 
         }
 
