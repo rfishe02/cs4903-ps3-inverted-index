@@ -2,3 +2,5 @@
 *.class
 *.temp
 *.raf
+*.out
+*.tmp
