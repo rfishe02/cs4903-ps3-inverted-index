@@ -1,6 +1,81 @@
 
 public class Sort {
 
+  public static void algoTwo(File input) {
+    String top = "";
+    int topInd = 0;
+
+    try {
+      File[] files = input.listFiles();
+
+      /*
+
+      */
+
+      BufferedReader[] br = new BufferedReader[files.length];
+
+      for(int a = 0; a < files.length; a++) {
+        br[a] = new BufferedReader(new FileReader(files[a]));
+      }
+
+      RandomAccessFile post = new RandomAccessFile("post.raf","rw"); // Create & open a new file for postings, post.raf
+      String read = "";
+      int nullCount = 0;
+      int recordCount = 0;
+
+      while(nullCount < br.length) {
+
+        br[topInd].mark(100);
+        top = br[topInd].readLine();
+        nullCount = 0;
+
+        for(int b = 0; b < br.length; b++) {
+
+          br[b].mark(100);
+          if((read = br[b].readLine()) != null) {
+
+            if(read.substring(0,(RECORD_LENGTH - SUB)).compareTo(top.substring(0,(RECORD_LENGTH - SUB))) < 0) {
+
+              br[topInd].reset();
+              top = read;
+              topInd = b;
+
+            } else {
+              br[b].reset();
+            }
+
+          } else {
+            nullCount++;
+          }
+
+        } // find token that is alphabetically first in the buffer
+
+        System.out.println(top); // Need to write to postings.
+
+        // update the start field for the token in the global hash table.
+        // calculate inverse document frequency for term from gh(t).numberOfDocuments
+        // write postings record for the token (documentID, termFrequency, OR rtf * idf)
+        // recordCount = recordCount + 1;
+
+      } // while all postings haven't been written do
+
+      System.out.println("DONE!");
+
+      post.close();
+
+      for(BufferedReader b : br) {
+        b.close();
+      }
+
+      writeDictionary();
+
+    } catch(IOException ex) {
+      ex.printStackTrace();
+      System.exit(1);
+    }
+
+  }
+
   /*
   MERGE-SORT(A,p,r)
     if p < r

@@ -267,7 +267,7 @@ public class UAInvertedIndex {
           if((q+1) < A.length) {
             System.out.println(p+" "+(q+1)+" "+r);
             merge(A, p, q, r);
-          } 
+          }
 
         }
 
@@ -294,7 +294,6 @@ public class UAInvertedIndex {
   */
 
   public static void merge(File[] A, int p, int q, int r) throws IOException {
-
     int z = q;
     if((q + 1) < A.length) {
       z = q + 1;
