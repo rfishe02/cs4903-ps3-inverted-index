@@ -303,9 +303,15 @@ public class UAInvertedIndex {
 
     }
 
-    System.out.println();
+    while((s1 = L.readLine()) != null) {
+      bw.write(s1+"\n");
+    }
+    while((s2 = R.readLine()) != null) {
+      bw.write(s2+"\n");
+    }
 
     A[p] = new File(filename);
+
 
     L.close();
     R.close();
