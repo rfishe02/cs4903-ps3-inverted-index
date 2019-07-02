@@ -262,7 +262,6 @@ public class UAInvertedIndex {
           int q = Math.min(p + (c-1), n-1);
           int r = Math.min(p + 2*(c-1), n-1);
 
-          System.out.println(p+" "+(q+1)+" "+r);
           merge(A, p, q, r);
 
         }
@@ -310,12 +309,16 @@ public class UAInvertedIndex {
       bw.write(s2+"\n");
     }
 
-    A[p] = new File(filename);
-
-
     L.close();
     R.close();
     bw.close();
+
+    if((q+1) > 1) {
+      if(A[p].exists()) {
+        A[p].delete();
+      }
+    }
+    A[p] = new File(filename);
 
   }
 }
