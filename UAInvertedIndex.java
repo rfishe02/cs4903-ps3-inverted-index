@@ -251,7 +251,7 @@ public class UAInvertedIndex {
 
   /** Use an iterative merge sort to combine files. The basis for this sort is
       directly from the bottom up sort shown on Wikipedia. However, the merge
-      portion is unique and unlike the example on the website.
+      portion is different from the example on the website.
   */
 
   public static void mergeSort(File[] A, int n) {
