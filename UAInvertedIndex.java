@@ -44,7 +44,7 @@ public class UAInvertedIndex {
     //algoTwo(outDir);
 
     //File[] test = new File[10];
-    String[] test = {"A","B","C","D","E","F","G"};
+    String[] test = {"A","B","C","D","E","F","G","H","I","J","K","L"};
     mergeSort(test,test.length);
 
     /*
@@ -262,10 +262,9 @@ public class UAInvertedIndex {
           int q = Math.min(p + c - 1, n-1);
           int r = Math.min(p + 2*c - 1, n-1);
 
-          System.out.println(p+" "+" "+r);
-
           merge(A, p, q, r);
 
+          System.out.println(p+" "+(q+1)+" "+r);
           for(int i = 0; i < A.length; i++) {
             System.out.print(" [ "+i+" "+A[i]+" ] ");
           }
@@ -281,65 +280,34 @@ public class UAInvertedIndex {
   }
 
   public static void merge(String[] A, int p, int q, int r) throws IOException {
-    int n1 = q - p + 1;
-    int n2 = r - q;
 
-    String[] L = new String[n1];
-    String[] R = new String[n2];
+    String[] L = new String[1];
+    String[] R = new String[1];
 
-    for(int a = 0; a < n1; a++) {
-      L[a] = A[p + a];
-      A[p+a] = "";
-    }
-    for(int b = 0; b < n2; b++) {
-      R[b] = A[q + 1 + b];
-      A[q + 1 + b] = "";
-    }
+    System.out.println();
 
-    int i = 0;
-    int j = 0;
+    L[0] = A[p];
+    A[p] = "";
 
-    while( i < n1 && j < n2) {
-
-      if(L[i].compareTo(R[j]) <= 0) {
-
-        if(p % 4 == 0) {
-          A[p] += L[i];
-        } else {
-          A[r] += L[i];
-        }
-
-        i++;
-      } else {
-
-        if(p % 4 == 0) {
-          A[p] += R[j];
-        } else {
-          A[r] += R[j];
-        }
-
-        j++;
-      }
+    if(q + 1 < A.length) {
+      R[0] = A[q + 1];
+      A[q + 1] = "";
+    } else {
+      R[0] = A[q];
+      A[q] = "";
     }
 
-    while(i < n1) {
-      if(p % 4 == 0) {
-        A[p] += L[i];
-      } else {
-        A[r] += L[i];
-      }
+    if(L[0].compareTo(R[0]) <= 0) {
 
-      i++;
+      A[p] += L[0];
+      A[p] += R[0];
+
+    } else {
+
+      A[p] += R[0];
+      A[p] += L[0];
+
     }
-    while(j < n2) {
 
-      if(p % 4 == 0) {
-        A[p] += R[j];
-      } else {
-        A[r] += R[j];
-      }
-
-      j++;
-    }
   }
 }
