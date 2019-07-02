@@ -44,7 +44,7 @@ public class UAInvertedIndex {
     //algoTwo(outDir);
 
     //File[] test = new File[10];
-    String[] test = {"A","B","C","D","E","F","G","H","I","J","K","L"};
+    String[] test = {"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"};
     mergeSort(test,test.length);
 
     /*
@@ -255,12 +255,12 @@ public class UAInvertedIndex {
 
     try {
 
-      for(int c = 1; c < n-1; c = 2 * c) {
+      for(int c = 1; c < n; c = 2 * c) {
 
-        for(int p = 0; p < n-1; p += 2 * c) {
+        for(int p = 0; p < (n - 1); p += 2 * c) {
 
-          int q = Math.min(p + c - 1, n-1);
-          int r = Math.min(p + 2*c - 1, n-1);
+          int q = Math.min(p + (c - 1), n-1);
+          int r = Math.min(p + 2*(c - 1), n-1);
 
           merge(A, p, q, r);
 
@@ -289,7 +289,7 @@ public class UAInvertedIndex {
     L[0] = A[p];
     A[p] = "";
 
-    if(q + 1 < A.length) {
+    if((q + 1) < A.length) {
       R[0] = A[q + 1];
       A[q + 1] = "";
     } else {
