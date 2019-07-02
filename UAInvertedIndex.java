@@ -40,18 +40,18 @@ public class UAInvertedIndex {
 
     gh = new GlobalMap(seed); // initialize global hash table.
 
+    buildInvertedIndex(inDir,outDir);
+
+  }
+
+  public void buildInvertedIndex(File inDir, File outDir) {
+
     algoOne(inDir,outDir);
 
     File[] test = (new File("output/")).listFiles();
     mergeSort(test,test.length);
 
     //algoTwo(outDir);
-
-  }
-
-  public void buildInvertedIndex() {
-
-
 
   }
 
