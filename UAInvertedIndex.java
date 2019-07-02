@@ -44,7 +44,6 @@ public class UAInvertedIndex {
     //algoTwo(outDir);
 
     File[] test = (new File("output/")).listFiles();
-
     mergeSort(test,test.length);
 
     /*
@@ -305,15 +304,17 @@ public class UAInvertedIndex {
 
     String filename = "test/"+p+""+(q+1)+""+r+".tmp";
     BufferedWriter bw = new BufferedWriter(new FileWriter(filename)); // Create a new file, which will contain the merged data.
-    String s1;
-    String s2;
+    String s1 = L.readLine();
+    String s2 = R.readLine();
 
-    while((s1 = L.readLine()) != null && (s2 = R.readLine()) != null) {
+    while(s1 != null && s2 != null) {
 
       if(s1.compareTo(s2) <= 0) {
-        bw.write(s1+"\n"+s2+"\n");
+        bw.write(s1+"\n");
+        s1 = L.readLine();
       } else {
-        bw.write(s2+"\n"+s1+"\n");
+        bw.write(s2+"\n");
+        s2 = R.readLine();
       }
 
     } // Compare the lines of the file.
