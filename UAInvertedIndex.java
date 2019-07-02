@@ -294,7 +294,7 @@ public class UAInvertedIndex {
 
   public static void merge(File[] A, int p, int q, int r) throws IOException {
 
-    BufferedReader L = new BufferedReader( new FileReader(A[p]) );
+    BufferedReader L = new BufferedReader( new FileReader(A[p]) ); // Open the files at the given indices.
     BufferedReader R;
 
     if((q + 1) < A.length) {
@@ -304,8 +304,7 @@ public class UAInvertedIndex {
     }
 
     String filename = "test/"+p+""+(q+1)+""+r+".tmp";
-    BufferedWriter bw = new BufferedWriter(new FileWriter(filename));
-
+    BufferedWriter bw = new BufferedWriter(new FileWriter(filename)); // Create a new file, which will contain the merged data.
     String s1;
     String s2;
 
@@ -313,15 +312,14 @@ public class UAInvertedIndex {
 
       if(s1.compareTo(s2) <= 0) {
         bw.write(s1+"\n"+s2+"\n");
-
       } else {
         bw.write(s2+"\n"+s1+"\n");
       }
-      
-    }
+
+    } // Compare the lines of the file.
     while((s1 = L.readLine()) != null) {
       bw.write(s1+"\n");
-    }
+    } // Write any remaining lines to the file.
     while((s2 = R.readLine()) != null) {
       bw.write(s2+"\n");
     }
@@ -332,7 +330,7 @@ public class UAInvertedIndex {
 
     if(A[p].exists()) {
       A[p].delete();
-    }
+    } // Remove the original files.
     if((q + 1) < A.length) {
       if(A[q + 1].exists()) {
         A[q + 1].delete();
@@ -343,7 +341,7 @@ public class UAInvertedIndex {
       }
     }
 
-    A[p] = new File(filename);
+    A[p] = new File(filename); // Replace the file at A[p]. Future merges will use the newly merged file.
 
   }
 }
