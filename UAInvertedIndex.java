@@ -225,7 +225,7 @@ public class UAInvertedIndex {
   /** Use an iterative merge sort to combine files. The basis for this sort is
       directly from the bottom up sort shown on Wikipedia. However, the merge
       portion is different from the example on the website. It doesn't iterate over
-      the array, it just uses the value p to combine files.
+      the array, it just uses the values p and q to combine files.
   */
 
   public static void mergeSort(File[] A, int n) {
@@ -236,7 +236,7 @@ public class UAInvertedIndex {
 
       for(int c = 1; c < n; c = 2 * c) {
 
-        size = (int)( (double)(n-1) / c ); // Stop when the split reaches a certain size?
+        size = (int)( (double)(n-1) / c );
 
         if(size > Math.sqrt(A.length)) {
           for(int p = 0; p < n-1; p += 2 * c) {
@@ -249,7 +249,7 @@ public class UAInvertedIndex {
             }
           }
         } else {
-          break;
+          break;  // Stop when the split reaches a certain size.
         }
       }
 
@@ -258,11 +258,10 @@ public class UAInvertedIndex {
     }
   }
 
-  /** Instead of iterating accross the whole array, it opens the files at p and q, or q+1,
+  /** Instead of iterating accross the whole array, it opens the files at p and q+1,
      and merges them. It erases the previous files and stores the new file at A[p].
-     Eventually, it merges all files stored at A[p].
 
-     If we have five files, the method would merge files until it merges the
+     If we have five files, it may merge files until it merges the
      files at index 0 and 4. The last merge creates a file that holds the data of all
      other files.
 
