@@ -141,10 +141,9 @@ public class UAInvertedIndex {
         for(int b = 0; b < br.length; b++) {
 
           if(b != topInd) {
-
             br[b].mark(100);
-            if(top == null) {
 
+            if(top == null) {
               top = br[b].readLine();
               topInd = b;
               nullCount++;
@@ -152,7 +151,6 @@ public class UAInvertedIndex {
             } else if( (read = br[b].readLine()) != null ) {
 
               if(read.substring(0,(RECORD_LENGTH - SUB)+6).compareTo(top.substring(0,(RECORD_LENGTH - SUB)+6)) < 0) {
-
                 br[topInd].reset();
                 top = read;
                 topInd = b;
@@ -164,7 +162,6 @@ public class UAInvertedIndex {
             } else {
               nullCount++;
             }
-
           }
 
         } // find token that is alphabetically first in the buffer
@@ -192,7 +189,6 @@ public class UAInvertedIndex {
       ex.printStackTrace();
       System.exit(1);
     }
-
   }
 
   public static void writeDictionary(File outDir) throws IOException {
@@ -215,7 +211,6 @@ public class UAInvertedIndex {
     }
 
     dict.close();
-
   }
 
   public static String formatRecord(String str) {
