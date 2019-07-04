@@ -11,8 +11,7 @@ public class UAInvertedIndex {
   static final int RECORD_LENGTH = 20;
   static final int SUB = 4;
   static GlobalMap gh;
-  //static int seed = 3000000;
-  static int seed = 25;
+  static int seed = 3000000;
 
   public static void main(String[] args) {
 
@@ -33,10 +32,10 @@ public class UAInvertedIndex {
 
   public static void buildInvertedIndex(File inDir, File outDir) {
 
-    //algoOne(inDir,new File("temp"));
+    algoOne(inDir,new File("temp"));
 
-    //File[] tmp = (new File("temp")).listFiles();
-    //mergeSort(tmp,tmp.length);
+    File[] tmp = (new File("temp")).listFiles();
+    mergeSort(tmp,tmp.length);
 
     algoTwo(new File("tmp"),outDir);
 
@@ -45,6 +44,7 @@ public class UAInvertedIndex {
   public static void algoOne(File inDir, File outDir) {
     SortedMap<String, Integer> ht;  // Sort all ht entries by term alphabetically.
     BufferedReader br;
+    BufferedWriter bw = null;
     String read;
     int totalFreq;
 
@@ -61,15 +61,20 @@ public class UAInvertedIndex {
         totalFreq = 0; // set totalFreq to zero.
 
         while((read = br.readLine())!=null) {
-          if(ht.containsKey(read)) {
-            ht.put(read,ht.get(read)+1);
+
+          if(read.length() > 8) {
+            read = read.substring(0,8);
+          }
+
+          if( ht.containsKey( read ) ) {
+            ht.put( read ,ht.get( read )+1);
           } else {
-            ht.put(read,1);
+            ht.put( formatRecord( read ) ,1);
           }
           totalFreq++;
         }
 
-        termID = writeTempFile(outDir, ht, docID, termID);
+        termID = writeTempFile(outDir, bw, ht, docID, termID);
 
         docID++;
         br.close();
@@ -81,9 +86,9 @@ public class UAInvertedIndex {
     }
   }
 
-  public static int writeTempFile(File outDir, SortedMap<String, Integer> ht, int docID, int termID) throws IOException {
+  public static int writeTempFile(File outDir, BufferedWriter bw, SortedMap<String, Integer> ht, int docID, int termID) throws IOException {
 
-    BufferedWriter bw = new BufferedWriter(new FileWriter(outDir.getPath()+"/doc"+docID+".temp")); // Open new temporary file f.
+    bw = new BufferedWriter(new FileWriter(outDir.getPath()+"/doc"+docID+".temp")); // Open new temporary file f.
     TermData t;
 
     for(Map.Entry<String,Integer> entry : ht.entrySet()) {
@@ -101,7 +106,7 @@ public class UAInvertedIndex {
 
       } // if a term hasn't been found in prior documents.
 
-      bw.write( formatRecord(entry.getKey()) +" "+ docID +" "+ entry.getValue() +"\n"); // f.write(t, documentID, termFrequency (or tf / totalFrequency));
+      bw.write( String.format( "%s %-5d %-5d\n",formatRecord( entry.getKey() ) ,docID, entry.getValue() ) ); // f.write(t, documentID, termFrequency (or tf / totalFrequency));
 
     }  // for all term t in document hash table ht, do
     bw.close();  // close temp file f.
@@ -135,27 +140,31 @@ public class UAInvertedIndex {
 
         for(int b = 0; b < br.length; b++) {
 
-          br[b].mark(100);
-          if(top == null) {
+          if(b != topInd) {
 
-            top = br[b].readLine();
-            topInd = b;
-            nullCount++;
+            br[b].mark(100);
+            if(top == null) {
 
-          } else if((read = br[b].readLine()) != null) {
-
-            if(read.substring(0,(RECORD_LENGTH - SUB)).compareTo(top.substring(0,(RECORD_LENGTH - SUB))) < 0) {
-
-              br[topInd].reset();
-              top = read;
+              top = br[b].readLine();
               topInd = b;
+              nullCount++;
+
+            } else if( (read = br[b].readLine()) != null ) {
+
+              if(read.substring(0,(RECORD_LENGTH - SUB)+6).compareTo(top.substring(0,(RECORD_LENGTH - SUB)+6)) < 0) {
+
+                br[topInd].reset();
+                top = read;
+                topInd = b;
+
+              } else {
+                br[b].reset();
+              }
 
             } else {
-              br[b].reset();
+              nullCount++;
             }
 
-          } else {
-            nullCount++;
           }
 
         } // find token that is alphabetically first in the buffer
@@ -175,7 +184,9 @@ public class UAInvertedIndex {
         b.close();
       }
 
-      writeDictionary(outDir);
+      System.out.println("DONE");
+
+      //writeDictionary(outDir);
 
     } catch(IOException ex) {
       ex.printStackTrace();
@@ -185,7 +196,6 @@ public class UAInvertedIndex {
   }
 
   public static void writeDictionary(File outDir) throws IOException {
-
     RandomAccessFile dict = new RandomAccessFile(outDir.getPath()+"/dict.raf","rw"); //write global hash table to disk as dictionary file dict.raf
     String s;
     int c;
@@ -229,7 +239,9 @@ public class UAInvertedIndex {
   */
 
   public static void mergeSort(File[] A, int n) {
-
+    BufferedReader L = null;
+    BufferedReader R = null;
+    BufferedWriter bw = null;
     int size;
 
     try {
@@ -238,14 +250,14 @@ public class UAInvertedIndex {
 
         size = (int)( (double)(n-1) / c );
 
-        if(size > Math.sqrt(A.length)) {
+        if( size > Math.sqrt(A.length) ) {
           for(int p = 0; p < n-1; p += 2 * c) {
 
             int q = Math.min(p + (c-1), n-1);
             int r = Math.min(p + 2*(c-1), n-1);
 
-            if((q+1) < A.length) {
-              merge(A, p, q, r);
+            if( (q+1) < A.length ) {
+              merge(A, L, R, bw, p, q, r);
             }
           }
         } else {
@@ -271,20 +283,20 @@ public class UAInvertedIndex {
      p: 0  q: 4 --> merge the files at index zero and four.
   */
 
-  public static void merge(File[] A, int p, int q, int r) throws IOException {
+  public static void merge(File[] A, BufferedReader L, BufferedReader R, BufferedWriter bw, int p, int q, int r) throws IOException {
     int z = z = q + 1;
-
-    BufferedReader L = new BufferedReader( new FileReader(A[p]) ); // Open the files at the given indices.
-    BufferedReader R = new BufferedReader( new FileReader(A[z]) );
-
     String filename = "tmp/"+p+""+z+""+r+".tmp";
-    BufferedWriter bw = new BufferedWriter(new FileWriter(filename)); // Create a new file, which will contain the merged data.
+
+    L = new BufferedReader( new FileReader(A[p]) ); // Open the files at the given indices.
+    R = new BufferedReader( new FileReader(A[z]) );
+
+    bw = new BufferedWriter(new FileWriter(filename)); // Create a new file, which will contain the merged data.
     String s1 = L.readLine();
     String s2 = R.readLine();
 
     while(s1 != null && s2 != null) {
 
-      if(s1.substring(0,(RECORD_LENGTH - SUB)).compareTo(s1.substring(0,(RECORD_LENGTH - SUB))) <= 0) {
+      if(s1.substring(0,(RECORD_LENGTH - SUB)+6).compareTo(s2.substring(0,(RECORD_LENGTH - SUB)+6)) < 0) {
         bw.write(s1+"\n");
         s1 = L.readLine();
       } else {
@@ -293,6 +305,7 @@ public class UAInvertedIndex {
       }
 
     } // Compare the lines of the file.
+
     while((s1 = L.readLine()) != null) {
       bw.write(s1+"\n");
     } // Write any remaining lines to the file.
@@ -312,6 +325,5 @@ public class UAInvertedIndex {
     }
 
     A[p] = new File(filename); // Replace the file at A[p]. Future merges will use the newly merged file.
-
   }
 }
