@@ -1,6 +1,8 @@
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.PriorityQueue;
+import java.util.Comparator;
 
 public class UAQuery {
 
@@ -39,7 +41,9 @@ public class UAQuery {
       RandomAccessFile post = new RandomAccessFile("output/post.raf","rw");
       RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
 
+      File[] files = new File[count];
       int docID;
+      int a = 0;
 
       post.seek(((start-count)+1) * POST_LEN);
       for(int i = 0; i < count; i++) {
@@ -47,10 +51,14 @@ public class UAQuery {
         System.out.println(docID+" "+post.readFloat());
 
         map.seek(docID * (DOC_LEN + 2));
-        System.out.println(map.readUTF());
+        files[a] = new File("input/"+map.readUTF());
+        a++;
 
       }
 
+      HashMap<String,Integer> vocab = new HashMap<>(5000);
+
+      float[][] tcm = buildTCM(files,vocab,5000,4);
 
       dict.close();
       post.close();
@@ -67,7 +75,42 @@ public class UAQuery {
 
   /* METHODS USED TO CONSTRUCT A TCM FOR A LIST OF FILES */
 
-  public static float[][] buildTermContextMatrix(File[] files, HashMap<String,Integer> vocab, int size, int window) {
+  public static ArrayList<String> getVocab(File inDir) {
+    System.out.println("building vocab");
+    ArrayList<String> vocab = null;
+
+    try {
+      TreeSet<String> set = new TreeSet<>(new VocabComparator());
+      BufferedReader br;
+      String read;
+
+      File[] files = inDir.listFiles();
+      for(File f : files) {
+
+        br = new BufferedReader(new FileReader(f));
+        while((read = br.readLine())!=null) {
+          set.add(read);
+        }
+
+        br.close();
+      }
+
+      vocab = new ArrayList<>(set.size());
+
+      Iterator<String> it = set.iterator();
+      while(it.hasNext()) {
+        vocab.add(it.next());
+      }
+
+    } catch(IOException ex) {
+        ex.printStackTrace();
+        System.exit(1);
+    }
+
+    return vocab;
+  }
+
+  public static float[][] buildTCM(File[] files, HashMap<String,Integer> vocab, int size, int window) {
     BufferedReader br;
     String[] prev;
     String[] next;
@@ -167,6 +210,66 @@ public class UAQuery {
     v = Math.max(v,0);
 
     return v;
+  }
+
+  /* ------------------------------------------------------------------------ */
+
+  public static float calculateSimilarity( float[][] tcm, int u, int v ) {
+    double one = 0.0;
+    double two = 0.0;
+    double tot = 0.0;
+
+    for(int col = 0; col < tcm[0].length; col++) {
+      tot += ( tcm[u][col] * tcm[v][col] );
+      one += Math.pow( tcm[u][col],2 );
+      two += Math.pow( tcm[v][col],2 );
+    }
+
+    return (float)((tot) / (Math.sqrt(one) * Math.sqrt(two)));
+  }
+
+  public static String[] getContext(float[][] tcm, HashMap<String,Integer> vocab, int k, int u) {
+    System.out.println("searching for context");
+
+    PriorityQueue<ResultObj> pq = new PriorityQueue<>(new ContextComparator());
+    String[] res = new String[k];
+
+    for(int i = 0; i < tcm.length; i++) {
+      if(i != u) {
+        pq.add(new ResultObj(calculateSimilarity(tcm,u,i),i));
+      }
+    }
+
+    int j = 0;
+    while(j < k && !pq.isEmpty()) {
+      res[j] = (pq.remove().row)+"";
+      System.out.println(res[j]);
+      j++;
+    }
+
+    return res;
+  }
+
+  static class ResultObj {
+    float score;
+    int row;
+
+    public ResultObj(float score, int row) {
+      this.score = score;
+      this.row = row;
+    }
+  }
+
+  static class ContextComparator implements Comparator<ResultObj> {
+    public int compare(ResultObj s1, ResultObj s2) {
+      if(s1.score > s2.score) {
+        return -1;
+      } else if(s1.score < s2.score) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
   }
 
 }
