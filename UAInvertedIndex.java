@@ -8,23 +8,42 @@ import java.util.Comparator;
 
 public class UAInvertedIndex {
 
-  static final int RECORD_LENGTH = 20;
-  static final int SUB = 4;
+  static boolean test = true;
+
+  /*
+  dict.raf
+    4 bytes (int)   <-- termID
+    4 bytes (float) <-- termFrequency / RTF
+    4 bytes (int)   <-- start
+
+  post.raf
+    4 bytes (int)   <-- documentID
+    4 bytes (float) <-- RTF*IDF
+
+  map.raf
+    4 bytes (int)        --> docID
+    25-30 bytes (string) --> filename
+  */
+
+  static final int STR_LEN = 8;
+  static final int DOC_LEN = 25;
+  static final int DOCID_LEN = 5;
+
   static GlobalMap gh;
   static int seed = 3000000;
 
   public static void main(String[] args) {
 
-    if(args.length < 1) {
+    if(test && args.length < 1) {
       args = new String[2];
       args[0] = "./input";
       args[1] = "./output";
-    }
+    }/*************************************************************************/
 
     File inDir = new File(args[0]);
     File outDir = new File(args[1]);
 
-    gh = new GlobalMap(seed); // initialize global hash table.
+    gh = new GlobalMap(seed); // Initialize global hash table.
 
     buildInvertedIndex(inDir,outDir);
 
@@ -32,17 +51,15 @@ public class UAInvertedIndex {
 
   public static void buildInvertedIndex(File inDir, File outDir) {
 
-    algoOne(inDir,new File("temp"));
+    int size = algoOne(inDir,outDir,new File("temp"));
 
-    File[] tmp = (new File("temp")).listFiles();
-    mergeSort(tmp,tmp.length);
-
-    algoTwo(new File("tmp"),outDir);
+    mergeSort(new File("temp"),size); // Consolidate the temporary files produced by the first algorithm.
+    algoTwo(new File("tmp"),outDir,size);
 
   }
 
-  public static void algoOne(File inDir, File outDir) {
-    SortedMap<String, Integer> ht;  // Sort all ht entries by term alphabetically.
+  public static int algoOne(File inDir, File outDir, File tmpDir) {
+    SortedMap<String, Integer> ht;  // Used to sort all ht entries by term alphabetically.
     BufferedReader br;
     BufferedWriter bw = null;
     String read;
@@ -52,94 +69,94 @@ public class UAInvertedIndex {
     int termID = 0;
 
     try {
+      RandomAccessFile map = new RandomAccessFile(outDir.getPath()+"/map.raf","rw");
 
       for(File d : inDir.listFiles()) {
-
         br = new BufferedReader(new FileReader(d));
 
-        ht = new TreeMap<String,Integer>(new TermComparator()); // initialize a document hash table.
-        totalFreq = 0; // set totalFreq to zero.
+        ht = new TreeMap<String,Integer>(new TermComparator()); // Initialize a document hash table.
+        totalFreq = 0; // Set totalFreq to zero.
 
         while((read = br.readLine())!=null) {
-
-          if(read.length() > 8) {
+          if(test && read.length() > 8) {
             read = read.substring(0,8);
-          }
+          }/*******************************************************************/
 
           if( ht.containsKey( read ) ) {
             ht.put( read ,ht.get( read )+1);
           } else {
-            ht.put( formatRecord( read ) ,1);
+            ht.put( formatString(read, STR_LEN) ,1);
           }
           totalFreq++;
         }
+        bw = new BufferedWriter(new FileWriter(tmpDir.getPath()+"/doc"+docID+".temp")); // Open new temporary file f.
+        termID = writeTempFile(map, bw, ht, docID, termID, totalFreq);
+        bw.close();  // Close temp file f.
 
-        termID = writeTempFile(outDir, bw, ht, docID, termID);
+        //map.writeInt(docID);
+        map.writeUTF( formatString(d.getName(),DOC_LEN) );
 
         docID++;
         br.close();
       }
+      map.close();
 
     } catch(Exception ex) {
       ex.printStackTrace();
       System.exit(1);
     }
+
+    return docID;
   }
 
-  public static int writeTempFile(File outDir, BufferedWriter bw, SortedMap<String, Integer> ht, int docID, int termID) throws IOException {
-
-    bw = new BufferedWriter(new FileWriter(outDir.getPath()+"/doc"+docID+".temp")); // Open new temporary file f.
+  public static int writeTempFile(RandomAccessFile map, BufferedWriter bw, SortedMap<String, Integer> ht, int docID, int termID, int totalFreq) throws IOException {
     TermData t;
 
     for(Map.Entry<String,Integer> entry : ht.entrySet()) {
 
       if( ( t = gh.get( entry.getKey() ) ) != null ) {
-
         t.setCount(t.getCount() + 1);
         gh.put(t);
 
       } else {
 
-        t = new TermData(entry.getKey(),termID,1); // put(t, <termID, # documents = 1>)
+        t = new TermData(entry.getKey(),termID,1); // put( t, <termID, # documents = 1> )
         gh.put(t);
         termID = termID + 1;
 
-      } // if a term hasn't been found in prior documents.
+      } // If a term hasn't been found in prior documents.
 
-      bw.write( String.format( "%s %-5d %-5d\n",formatRecord( entry.getKey() ) ,docID, entry.getValue() ) ); // f.write(t, documentID, termFrequency (or tf / totalFrequency));
+      bw.write( String.format( "%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-8f\n", formatString( entry.getKey(), STR_LEN ) , docID, ((double)entry.getValue()/totalFreq) ) ); // f.write( t, documentID, (tf / totalFrequency) )
 
-    }  // for all term t in document hash table ht, do
-    bw.close();  // close temp file f.
+    }  // For all term t in document hash table ht, do this.
 
     return termID;
   }
 
-  public static void algoTwo(File inDir, File outDir) {
+  public static void algoTwo(File inDir, File outDir, int size) {
+    TermData t;
+    String read = "";
     String top = "";
     int topInd = 0;
+    int recordCount = 0;
+    int nullCount = 0;
+    float rtfIDF;
 
     try {
-
       File[] files = inDir.listFiles();
       BufferedReader[] br = new BufferedReader[files.length];
-
       for(int a = 0; a < files.length; a++) {
         br[a] = new BufferedReader(new FileReader(files[a]));
       }
 
-      RandomAccessFile post = new RandomAccessFile(outDir.getPath()+"/post.raf","rw"); // Create & open a new file for postings, post.raf
-      String read = "";
-      int nullCount = 0;
-      int recordCount = 0;
+      RandomAccessFile post = new RandomAccessFile(outDir.getPath()+"/post.raf","rw"); // Create & open a new file for postings, post.raf .
 
       while(nullCount < br.length) {
-
         br[topInd].mark(100);
         top = br[topInd].readLine();
         nullCount = 0;
 
         for(int b = 0; b < br.length; b++) {
-
           if(b != topInd) {
             br[b].mark(100);
 
@@ -150,38 +167,49 @@ public class UAInvertedIndex {
 
             } else if( (read = br[b].readLine()) != null ) {
 
-              if(read.substring(0,(RECORD_LENGTH - SUB)+6).compareTo(top.substring(0,(RECORD_LENGTH - SUB)+6)) < 0) {
+              if( read.substring(0,STR_LEN).compareTo(top.substring(0,STR_LEN)) < 0 ) {
                 br[topInd].reset();
                 top = read;
                 topInd = b;
-
               } else {
-                br[b].reset();
-              }
+                if( read.substring(0,STR_LEN).compareTo(top.substring(0,STR_LEN)) == 0 ) {
+                  if( Integer.parseInt(read.substring(STR_LEN,STR_LEN+DOCID_LEN).trim()) < Integer.parseInt(top.substring(STR_LEN,STR_LEN+DOCID_LEN).trim()) ) {
+                    br[topInd].reset();
+                    top = read;
+                    topInd = b;
+                  } else {
+                    br[b].reset();
+                  }
+                } else {
+                  br[b].reset();
+                }
+              } // If the two are similiar, compare the document IDs.
 
             } else {
               nullCount++;
             }
           }
+        } // find token that is alphabetically first in the buffer.
 
-        } // find token that is alphabetically first in the buffer
+        t = gh.get( top.substring(0,STR_LEN).trim() );
+        t.setStart(recordCount);
+        gh.put( t ); // Update the start field for the token in the global hash table.
 
-        System.out.println(top); // Need to write to postings.
+        rtfIDF = (float) ( Double.parseDouble( top.substring( STR_LEN+DOCID_LEN, top.length() ) )
+               * Math.log( (double) size / t.getCount() ) ); // Calculate inverse document frequency for term from gh(t).numberOfDocuments .
 
-        // update the start field for the token in the global hash table.
-        // calculate inverse document frequency for term from gh(t).numberOfDocuments
-        // write postings record for the token (documentID, termFrequency, OR rtf * idf)
-        // recordCount = recordCount + 1;
+        System.out.println(top+" "+rtfIDF); // Need to write to postings.
 
-      } // while all postings haven't been written do
+        // Write postings record for the token (documentID, termFrequency, OR rtf * idf) .
+
+        recordCount = recordCount + 1;
+      } // While all postings haven't been written do this.
 
       post.close();
 
       for(BufferedReader b : br) {
         b.close();
       }
-
-      System.out.println("DONE");
 
       //writeDictionary(outDir);
 
@@ -206,19 +234,18 @@ public class UAInvertedIndex {
         c = -1;
       }
 
-      dict.writeUTF( formatRecord(s) );
+      //dict.writeUTF( formatRecord(s) );
       dict.writeInt( c );
     }
 
     dict.close();
   }
 
-  public static String formatRecord(String str) {
-    int len = RECORD_LENGTH - SUB;
-    if(str.length() > (len)) {
-      str = str.substring(0,len);
+  public static String formatString(String str, int limit) {
+    if(str.length() > limit) {
+      str = str.substring(0,limit);
     }
-    return String.format("%-"+len+"s",str);
+    return str;
   }
 
   static class TermComparator implements Comparator<String> {
@@ -233,14 +260,15 @@ public class UAInvertedIndex {
       the array, it just uses the values p and q to combine files.
   */
 
-  public static void mergeSort(File[] A, int n) {
+  public static void mergeSort(File inDir, int n) {
     BufferedReader L = null;
     BufferedReader R = null;
     BufferedWriter bw = null;
     int size;
 
-    try {
+    File[] A = inDir.listFiles();
 
+    try {
       for(int c = 1; c < n; c = 2 * c) {
 
         size = (int)( (double)(n-1) / c );
@@ -291,12 +319,22 @@ public class UAInvertedIndex {
 
     while(s1 != null && s2 != null) {
 
-      if(s1.substring(0,(RECORD_LENGTH - SUB)+6).compareTo(s2.substring(0,(RECORD_LENGTH - SUB)+6)) < 0) {
+      if( s1.substring(0,STR_LEN).compareTo(s2.substring(0,STR_LEN)) < 0 ) {
         bw.write(s1+"\n");
         s1 = L.readLine();
       } else {
-        bw.write(s2+"\n");
-        s2 = R.readLine();
+        if( s1.substring(0,STR_LEN).compareTo(s2.substring(0,STR_LEN)) == 0 ) {
+          if( Integer.parseInt(s1.substring(STR_LEN,STR_LEN+DOCID_LEN).trim()) < Integer.parseInt(s2.substring(STR_LEN,STR_LEN+DOCID_LEN).trim()) ) {
+            bw.write(s1+"\n");
+            s1 = L.readLine();
+          } else {
+            bw.write(s2+"\n");
+            s2 = R.readLine();
+          }
+        } else {
+          bw.write(s2+"\n");
+          s2 = R.readLine();
+        }
       }
 
     } // Compare the lines of the file.

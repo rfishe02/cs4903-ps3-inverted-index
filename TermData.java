@@ -4,7 +4,7 @@ public class TermData {
   private String term;
   private int termID;
   private int docCount;
-  //private int start;
+  private int start;
 
   public TermData(String term, int termID, int docCount) {
     this.term = term;
@@ -38,6 +38,14 @@ public class TermData {
 
   public int getCount() {
     return this.docCount;
+  }
+
+  public void setStart(int start) {
+    this.start = start;
+  }
+
+  public int getStart() {
+    return start;
   }
 
 }
