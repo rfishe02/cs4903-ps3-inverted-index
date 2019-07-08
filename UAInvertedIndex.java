@@ -6,6 +6,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Comparator;
 
+/*
+  Consider removing termID from application if you do not intend to use it.
+*/
+
 public class UAInvertedIndex {
 
   static boolean test = true;
@@ -31,7 +35,8 @@ public class UAInvertedIndex {
   static final int DOC_LEN = 25;
 
   static GlobalMap gh;
-  static int seed = 2000000;
+  //static int seed = 2000000;
+  static int seed = 5000;
 
   public static void main(String[] args) {
 
@@ -83,9 +88,9 @@ public class UAInvertedIndex {
           }/*******************************************************************/
 
           if( ht.containsKey( read ) ) {
-            ht.put( read ,ht.get( read )+1);
+            ht.put( read, ht.get( read )+1);
           } else {
-            ht.put( formatString(read, STR_LEN) ,1);
+            ht.put( read, 1);
           }
           totalFreq++;
         }
@@ -161,6 +166,7 @@ public class UAInvertedIndex {
             br[b].mark(100);
 
             if(top == null) {
+              br[topInd].mark(100);
               top = br[b].readLine();
               topInd = b;
               nullCount++;
@@ -198,9 +204,10 @@ public class UAInvertedIndex {
         rtfIDF = (float) ( Double.parseDouble( top.substring( STR_LEN+DOCID_LEN, top.length() ) )
                * Math.log( (double) size / t.getCount() ) ); // Calculate inverse document frequency for term from gh(t).numberOfDocuments .
 
-        //System.out.println(top);
         post.writeInt(Integer.parseInt(top.substring(STR_LEN,STR_LEN+DOCID_LEN).trim())); // Write postings record for the token (documentID, termFrequency, OR rtf * idf) .
         post.writeFloat(rtfIDF);
+
+        System.out.println(top+" "+rtfIDF+" "+t);
 
         recordCount = recordCount + 1;
       } // While all postings haven't been written do this.
@@ -251,7 +258,7 @@ public class UAInvertedIndex {
     if(str.length() > limit) {
       str = str.substring(0,limit);
     }
-    return str;
+    return String.format("%-"+limit+"s",str);
   }
 
   static class TermComparator implements Comparator<String> {
@@ -343,13 +350,16 @@ public class UAInvertedIndex {
         }
       }
 
-    } // Compare the lines of the file.
+    } // Compare the lines of the files.
 
-    while((s1 = L.readLine()) != null) {
+    while(s1 != null) {
       bw.write(s1+"\n");
+      s1 = L.readLine();
     } // Write any remaining lines to the file.
-    while((s2 = R.readLine()) != null) {
+
+    while(s2 != null) {
       bw.write(s2+"\n");
+      s2 = R.readLine();
     }
 
     L.close();

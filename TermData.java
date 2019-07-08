@@ -13,7 +13,7 @@ public class TermData {
   }
 
   public String toString() {
-    return term +" "+ termID +" "+ docCount;
+    return term +" "+ termID +" "+ docCount+" "+start;
   }
 
   public void setT(String term) {
