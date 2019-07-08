@@ -5,7 +5,10 @@ public class UAQuery {
 
   // Don't create a TCM for all documents, just those in the query.
 
-  static final int RECORD_LENGTH = 8+4+4;
+  static final int DICT_LEN = 8+4+4;
+  static final int POST_LEN = 4+4;
+  static final int STR_LEN = 8;
+  static final int DOC_LEN = 25;
   static final int seed = 5000;
 
   public static void main(String[] args) {
@@ -22,7 +25,7 @@ public class UAQuery {
 
       RandomAccessFile dict = new RandomAccessFile("output/dict.raf","rw");
 
-      dict.seek(hash("youtube",0) * (RECORD_LENGTH+2));
+      dict.seek(hash("youtube",0) * (DICT_LEN+2));
       String record = dict.readUTF();
       int count = dict.readInt();
       int start = dict.readInt();
@@ -30,14 +33,24 @@ public class UAQuery {
       System.out.println(record+" "+count+" "+start);
 
       RandomAccessFile post = new RandomAccessFile("output/post.raf","rw");
+      RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
 
-      post.seek(start+2);
-      for(int i = start; i < start+count; i++) {
-        System.out.println(post.readInt()+" "+post.readFloat());
+      int docID;
+
+      post.seek(((start-count)+1) * POST_LEN);
+      for(int i = 0; i < count; i++) {
+        docID = post.readInt();
+        System.out.println(docID+" "+post.readFloat());
+
+        map.seek(docID * (DOC_LEN + 2));
+        System.out.println(map.readUTF());
+
       }
+
 
       dict.close();
       post.close();
+      map.close();
 
     } catch(IOException ex) {
       ex.printStackTrace();

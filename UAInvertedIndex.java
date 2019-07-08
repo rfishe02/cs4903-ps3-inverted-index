@@ -157,9 +157,10 @@ public class UAInvertedIndex {
       RandomAccessFile post = new RandomAccessFile(outDir.getPath()+"/post.raf","rw"); // Create & open a new file for postings, post.raf .
 
       while(nullCount < br.length) {
+        nullCount = 0;
+
         br[topInd].mark(100);
         top = br[topInd].readLine();
-        nullCount = 0;
 
         for(int b = 0; b < br.length; b++) {
           if(b != topInd) {
@@ -167,9 +168,10 @@ public class UAInvertedIndex {
 
             if(top == null) {
               br[topInd].mark(100);
+              nullCount++;
+
               top = br[b].readLine();
               topInd = b;
-              nullCount++;
 
             } else if( (read = br[b].readLine()) != null ) {
 
@@ -192,6 +194,7 @@ public class UAInvertedIndex {
               } // If the two are similiar, compare the document IDs.
 
             } else {
+              br[b].mark(100);
               nullCount++;
             }
           }
