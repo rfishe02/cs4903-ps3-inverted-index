@@ -12,9 +12,10 @@ public class UAInvertedIndex {
 
   /*
   dict.raf
-    4 bytes (int)   <-- termID
-    4 bytes (float) <-- termFrequency / RTF
-    4 bytes (int)   <-- start
+    8 bytes (string) <-- term
+    4 bytes (int)    <-- termID
+    4 bytes (float)  <-- termFrequency / RTF
+    4 bytes (int)    <-- start
 
   post.raf
     4 bytes (int)   <-- documentID
@@ -26,11 +27,11 @@ public class UAInvertedIndex {
   */
 
   static final int STR_LEN = 8;
-  static final int DOC_LEN = 25;
   static final int DOCID_LEN = 5;
+  static final int DOC_LEN = 25;
 
   static GlobalMap gh;
-  static int seed = 3000000;
+  static int seed = 2000000;
 
   public static void main(String[] args) {
 
@@ -63,10 +64,9 @@ public class UAInvertedIndex {
     BufferedReader br;
     BufferedWriter bw = null;
     String read;
-    int totalFreq;
-
     int docID = 0;
     int termID = 0;
+    int totalFreq;
 
     try {
       RandomAccessFile map = new RandomAccessFile(outDir.getPath()+"/map.raf","rw");
@@ -90,7 +90,7 @@ public class UAInvertedIndex {
           totalFreq++;
         }
         bw = new BufferedWriter(new FileWriter(tmpDir.getPath()+"/doc"+docID+".temp")); // Open new temporary file f.
-        termID = writeTempFile(map, bw, ht, docID, termID, totalFreq);
+        termID = writeTempFile(bw, ht, docID, termID, totalFreq);
         bw.close();  // Close temp file f.
 
         //map.writeInt(docID);
@@ -109,14 +109,14 @@ public class UAInvertedIndex {
     return docID;
   }
 
-  public static int writeTempFile(RandomAccessFile map, BufferedWriter bw, SortedMap<String, Integer> ht, int docID, int termID, int totalFreq) throws IOException {
+  public static int writeTempFile(BufferedWriter bw, SortedMap<String, Integer> ht, int docID, int termID, int totalFreq) throws IOException {
     TermData t;
 
     for(Map.Entry<String,Integer> entry : ht.entrySet()) {
 
       if( ( t = gh.get( entry.getKey() ) ) != null ) {
         t.setCount(t.getCount() + 1);
-        gh.put(t);
+        //gh.put(t);
 
       } else {
 
@@ -192,15 +192,15 @@ public class UAInvertedIndex {
         } // find token that is alphabetically first in the buffer.
 
         t = gh.get( top.substring(0,STR_LEN).trim() );
-        t.setStart(recordCount);
-        gh.put( t ); // Update the start field for the token in the global hash table.
+        t.setStart(recordCount);  // Update the start field for the token in the global hash table.
+        //gh.put( t );
 
         rtfIDF = (float) ( Double.parseDouble( top.substring( STR_LEN+DOCID_LEN, top.length() ) )
                * Math.log( (double) size / t.getCount() ) ); // Calculate inverse document frequency for term from gh(t).numberOfDocuments .
 
-        System.out.println(top+" "+rtfIDF); // Need to write to postings.
-
-        // Write postings record for the token (documentID, termFrequency, OR rtf * idf) .
+        //System.out.println(top);
+        post.writeInt(Integer.parseInt(top.substring(STR_LEN,STR_LEN+DOCID_LEN).trim())); // Write postings record for the token (documentID, termFrequency, OR rtf * idf) .
+        post.writeFloat(rtfIDF);
 
         recordCount = recordCount + 1;
       } // While all postings haven't been written do this.
@@ -211,7 +211,7 @@ public class UAInvertedIndex {
         b.close();
       }
 
-      //writeDictionary(outDir);
+      writeDictionary(outDir);
 
     } catch(IOException ex) {
       ex.printStackTrace();
@@ -221,21 +221,27 @@ public class UAInvertedIndex {
 
   public static void writeDictionary(File outDir) throws IOException {
     RandomAccessFile dict = new RandomAccessFile(outDir.getPath()+"/dict.raf","rw"); //write global hash table to disk as dictionary file dict.raf
-    String s;
-    int c;
+    String term;
+    int id;
+    int ct;
+    int st;
 
     for(TermData t : gh.map) {
-
       if(t != null) {
-        s = t.getT();
-        c = t.getCount();
+        term = t.getT();
+        //id = t.getID();
+        ct = t.getCount();
+        st = t.getStart();
       } else {
-        s = "NA";
-        c = -1;
+        term = "NA";
+        id = -1;
+        ct = -1;
+        st = -1;
       }
-
-      //dict.writeUTF( formatRecord(s) );
-      dict.writeInt( c );
+      dict.writeUTF( formatString( term, STR_LEN ) );
+      //dict.writeInt( id );
+      dict.writeInt( ct );
+      dict.writeInt( st );
     }
 
     dict.close();
