@@ -20,7 +20,7 @@ public class UAQuery {
 
   public static void main(String[] args) {
 
-    String[] test = {"this","is","a","test"};
+    String[] test = {"youtube"};
 
     runQuery(test);
 
@@ -28,42 +28,56 @@ public class UAQuery {
 
   public static String[] runQuery(String[] query) {
 
+    String filename;
+    String record;
+    int count;
+    int start;
+    int docID;
+    int rtfIDF;
+
     try {
 
       RandomAccessFile dict = new RandomAccessFile("output/dict.raf","rw");
-
-      dict.seek(hash("youtube",0) * (DICT_LEN+2));
-      String record = dict.readUTF();
-      int count = dict.readInt();
-      int start = dict.readInt();
-
-      System.out.println(record+" "+count+" "+start);
-
       RandomAccessFile post = new RandomAccessFile("output/post.raf","rw");
       RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
 
-      File[] files = new File[count];
-      int docID;
-      int a = 0;
-
-      post.seek(((start-count)+1) * POST_LEN);
-      for(int i = 0; i < count; i++) {
-        docID = post.readInt();
-        System.out.println(docID+" "+post.readFloat());
-
-        map.seek(docID * (DOC_LEN + 2));
-        files[a] = new File("input/"+map.readUTF());
-        a++;
-
+      for(int i = 0; i < query; i++) {
+        
       }
 
-      Semantic s = new Semantic();
-      ArrayList<String> vocab = s.getVocab(files);
-      float[][] tcm = s.buildTermContextMatrix(files,vocab,vocab.size(),4);
+      /*
+      Build a document term matrix, then use RTFIDF to calculate cosine similarity.
+      Built a |V| x |D| matrix, of floats.
 
-      int u = s.wordSearch(vocab, "youtube");
-      s.getContext(vocab,tcm,10,u);
+      known: |V|
+      unknown: |D|
+      */
 
+      for(String s : query) {
+
+        int i = 0;
+        dict.seek(hash(s,i) * (DICT_LEN+2));
+        record = dict.readUTF();
+        while(record.trim().compareTo(s) != 0) {
+          i++;
+          dict.seek(hash(s,i) * (DICT_LEN+2));
+          record = dict.readUTF();
+        }
+
+        count = dict.readInt();
+        start = dict.readInt();
+
+        post.seek(((start-count)+1) * POST_LEN);
+        for(int x = 0; x < count; x++) {
+
+          docID = post.readInt();
+          rtfIDF = post.readFloat();
+
+          map.seek(docID * (DOC_LEN + 2));
+          filename = map.readUTF();
+        }
+
+      }
 
       dict.close();
       post.close();
@@ -77,5 +91,36 @@ public class UAQuery {
     return null;
 
   }
+
+  /*
+  dict.seek(hash("youtube",0) * (DICT_LEN+2));
+  String record = dict.readUTF();
+  int count = dict.readInt();
+  int start = dict.readInt();
+
+  System.out.println(record+" "+count+" "+start);
+
+  File[] files = new File[count];
+  int docID;
+  int a = 0;
+
+  post.seek(((start-count)+1) * POST_LEN);
+  for(int i = 0; i < count; i++) {
+    docID = post.readInt();
+    System.out.println(docID+" "+post.readFloat());
+
+    map.seek(docID * (DOC_LEN + 2));
+    files[a] = new File("input/"+map.readUTF());
+    a++;
+
+  }
+
+  Semantic s = new Semantic();
+  ArrayList<String> vocab = s.getVocab(files);
+  float[][] tcm = s.buildTermContextMatrix(files,vocab,vocab.size(),8);
+
+  int u = s.wordSearch(vocab, "youtube");
+  s.getContext(vocab,tcm,10,u);
+  */
 
 }
