@@ -48,7 +48,7 @@ public class UAQuery {
 
       mapRowsCols(docMap,termMap,query);
 
-      System.out.println(termMap.size());
+
 
       RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
       map.close();
@@ -106,39 +106,17 @@ public class UAQuery {
     dict.close();
     post.close();
 
-  }
+  } // Either approach this in two stages, or just use a LinkedList.
 
-  public static float[][] documentTermMatrix(HashMap<String,Integer> docMap, HashMap<String,Integer> termMap, HashSet<String> files, int row, int col) {
+  public static float[][] buildTDMatrix(HashMap<String,Integer> docMap, HashMap<String,Integer> termMap) {
 
     BufferedReader br;
     String read;
+    float[][] tdm = new float[docMap.size()][termMap.size()];
 
-    /*
-    try {
 
-      Iterator it = mp.entrySet().iterator();
-      while (it.hasNext()) {
-        Map.Entry pair = (Map.Entry)it.next();
 
-        br = new BufferedReader(new FileReader(inDir.getPath()+"/"+(String)pair.getKey()));
-
-        while((read=br.readLine())!=null) {
-
-          if(termMap.get(read)!=null) {
-            res[ termMap.get( read ) ][ (int)pair.getValue() ]++;
-          }
-
-        }
-
-        br.close()
-      }
-
-    } catch(IOException ex) {
-      ex.printStackTrace();
-      System.exit(1);
-    }*/
-
-    return null;
+    return tdm;
 
   }
 
@@ -172,5 +150,30 @@ public class UAQuery {
   int u = s.wordSearch(vocab, "youtube");
   s.getContext(vocab,tcm,10,u);
   */
+
+  /*
+  try {
+
+    Iterator it = mp.entrySet().iterator();
+    while (it.hasNext()) {
+      Map.Entry pair = (Map.Entry)it.next();
+
+      br = new BufferedReader(new FileReader(inDir.getPath()+"/"+(String)pair.getKey()));
+
+      while((read=br.readLine())!=null) {
+
+        if(termMap.get(read)!=null) {
+          res[ termMap.get( read ) ][ (int)pair.getValue() ]++;
+        }
+
+      }
+
+      br.close()
+    }
+
+  } catch(IOException ex) {
+    ex.printStackTrace();
+    System.exit(1);
+  }*/
 
 }
