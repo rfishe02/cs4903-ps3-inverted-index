@@ -45,15 +45,12 @@ public class UAQuery {
 
       HashMap<Integer,Integer> docMap = new HashMap<>();
       HashMap<String,Integer> termMap = new HashMap<>();
+      HashSet<String> q = new HashSet<>();
 
-      mapRowsCols(termMap,docMap,query);
-      float[][] tdm = buildTDM(termMap,docMap,query);
+      mapRowsCols(termMap,docMap,q,query);
+      float[][] tdm = buildTDM(termMap,docMap,q);
 
-      RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
-
-
-
-      map.close();
+      printTDM(tdm);
 
     } catch(IOException ex) {
       ex.printStackTrace();
@@ -63,12 +60,15 @@ public class UAQuery {
     return null;
   }
 
-  public static void mapRowsCols(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, String[] query) throws IOException {
+  public static void mapRowsCols(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> q, String[] query) throws IOException {
     RandomAccessFile dict = new RandomAccessFile("output/dict.raf","rw");
     RandomAccessFile post = new RandomAccessFile("output/post.raf","rw");
+    RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
+    BufferedReader br;
+    String read;
     String record;
     int row = 0;
-    int col = 0;
+    int col = 1;
     int count;
     int start;
     int docID;
@@ -86,7 +86,11 @@ public class UAQuery {
         if(!termMap.containsKey(s)) {
           termMap.put(s,row);
           row++;
-        } // Map terms to rows in the document term matrix.
+        } // Map terms to rows.
+
+        if(!q.contains(s)) {
+          q.add(s);
+        } // Add terms in query to HashSet.
 
         count = dict.readInt();
         start = dict.readInt();
@@ -99,49 +103,79 @@ public class UAQuery {
           if(!docMap.containsKey(docID)) {
             docMap.put(docID,col);
             col++;
-          } // Map document ID to column.
+          } // Map document ID to a column.
 
-        } // Read each posting listed.
+          map.seek(docID * (DOC_LEN + 2));
+          br = new BufferedReader(new FileReader("input/"+map.readUTF()));
+
+          while((read=br.readLine())!=null) {
+            if(!termMap.containsKey(read)) {
+              termMap.put(read,row);
+              row++;
+            }
+          } // Open file & map terms within to columns.
+
+          br.close();
+
+        } // Read each posting for the term.
       }
     } // Map terms & documets to columns.
 
+    docMap.put(-1,0); // Map query column to the first column.
+
     dict.close();
     post.close();
+    map.close();
 
   } // Either approach this in two stages, or just use a LinkedList.
 
-  public static float[][] buildTDM(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, String[] query) throws IOException {
+  public static float[][] buildTDM(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> query) throws IOException {
+    float[][] tdm = new float[termMap.size()][docMap.size()];
+
     RandomAccessFile dict = new RandomAccessFile("output/dict.raf","rw");
     RandomAccessFile post = new RandomAccessFile("output/post.raf","rw");
+    RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
     String record;
-    float[][] tdm = new float[termMap.size()][docMap.size()];
+    float rtfIDF;
     int count;
     int start;
     int docID;
     int i;
 
-    for(String s : query) {
+    for( Map.Entry<String,Integer> entry : termMap.entrySet()) {
       i = 0;
       do {
-        dict.seek(hash(s,i) * (DICT_LEN+2));
+        dict.seek( hash( entry.getKey() , i ) * (DICT_LEN+2) );
         record = dict.readUTF();
         i++;
-      } while(record.trim().compareTo("NA") != 0 && record.trim().compareTo(s) != 0); // Find the term in the dictionary.
+      } while(record.trim().compareTo( entry.getKey() ) != 0); // Find the term in the dictionary.
 
-      if(record.trim().compareTo("NA") != 0) {
-        count = dict.readInt();
-        start = dict.readInt();
+      count = dict.readInt();
+      start = dict.readInt();
 
-        post.seek(((start-count)+1) * POST_LEN);
-        for(int x = 0; x < count; x++) {
-          docID = post.readInt();
-          tdm[termMap.get(s)][docMap.get(docID)] = post.readFloat();
-        } // Read each posting listed.
-      }
-    } // Map terms & documets to columns.
+      post.seek(((start-count)+1) * POST_LEN);
+      for(int x = 0; x < count; x++) {
+        docID = post.readInt();
+        rtfIDF = post.readFloat();
+
+        if(docMap.containsKey(docID)) {
+
+          tdm[ entry.getValue() ][ docMap.get(docID) ] = rtfIDF;
+
+          if( query.contains( entry.getKey() ) ) {
+            System.out.println( entry.getKey() +" "+entry.getValue()+" "+ rtfIDF);
+            tdm[ entry.getValue() ][ 0 ] = rtfIDF;
+          }
+
+        }
+
+      } // Read each posting for the term.
+
+    }
 
     dict.close();
     post.close();
+    map.close();
 
     return tdm;
   }
@@ -155,7 +189,7 @@ public class UAQuery {
     }
   }
 
-  public static float calcCosineSimularity(float[][] tcm, int d, int q) {
+  public static float calcCosineSimularity(float[][] tdm, int d, int q) {
     double one = 0.0;
     double two = 0.0;
     double tot = 0.0;
@@ -163,9 +197,9 @@ public class UAQuery {
     int j = 0;
 
     for(int i = 0; i < tdm[0].length; i++) {
-      tot += ( tcm[i][d] * tcm[][] );
-      one += Math.pow( tcm[][],2 );
-      two += Math.pow( tcm[][],2 );
+      //tot += ( tcm[i][d] * tcm[][] );
+      //one += Math.pow( tcm[][],2 );
+      //two += Math.pow( tcm[][],2 );
     }
 
     /*
