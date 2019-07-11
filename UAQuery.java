@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.PriorityQueue;
 import java.util.Comparator;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
 
 public class UAQuery {
 
@@ -33,17 +35,14 @@ public class UAQuery {
     int count;
     int start;
     int docID;
-    int rtfIDF;
+    float rtfIDF;
+    int i;
 
     try {
 
       RandomAccessFile dict = new RandomAccessFile("output/dict.raf","rw");
       RandomAccessFile post = new RandomAccessFile("output/post.raf","rw");
       RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
-
-      for(int i = 0; i < query; i++) {
-        
-      }
 
       /*
       Build a document term matrix, then use RTFIDF to calculate cosine similarity.
@@ -53,29 +52,44 @@ public class UAQuery {
       unknown: |D|
       */
 
+      HashMap<Integer,Integer> docMap = new HashMap<>();
+      HashMap<String,Integer> termMap = new HashMap<>();
+      HashSet<String> files = new HashSet<>();
+      int row = 0;
+      int col = 0;
+
       for(String s : query) {
 
-        int i = 0;
-        dict.seek(hash(s,i) * (DICT_LEN+2));
-        record = dict.readUTF();
-        while(record.trim().compareTo(s) != 0) {
-          i++;
+        if(!termMap.containsKey(s)) {
+          termMap.put(s,row);
+          row++;
+        } // Map terms to rows in the document term matrix.
+
+        i = 0;
+        do {
           dict.seek(hash(s,i) * (DICT_LEN+2));
           record = dict.readUTF();
-        }
+          i++;
+        } while(record.trim().compareTo(s) != 0); // Find the term in the dictionary.
 
         count = dict.readInt();
         start = dict.readInt();
 
         post.seek(((start-count)+1) * POST_LEN);
         for(int x = 0; x < count; x++) {
-
           docID = post.readInt();
           rtfIDF = post.readFloat();
 
-          map.seek(docID * (DOC_LEN + 2));
-          filename = map.readUTF();
-        }
+          if(!docMap.containsKey(docID)) {
+            docMap.put(docID,col);
+            col++;
+          } // Map document ID to column.
+
+          //map.seek(docID * (DOC_LEN + 2));
+          //filename = map.readUTF();
+          // Collect the file names.
+
+        } // Read each posting listed.
 
       }
 
@@ -89,6 +103,40 @@ public class UAQuery {
     }
 
     return null;
+  }
+
+  public static float[][] documentTermMatrix(HashMap<String,Integer> docMap, HashMap<String,Integer> termMap, HashSet<String> files, int row, int col) {
+
+    BufferedReader br;
+    String read;
+    float[][] res = new float[size][size];
+
+    /*
+    try {
+
+      Iterator it = mp.entrySet().iterator();
+      while (it.hasNext()) {
+        Map.Entry pair = (Map.Entry)it.next();
+
+        br = new BufferedReader(new FileReader(inDir.getPath()+"/"+(String)pair.getKey()));
+
+        while((read=br.readLine())!=null) {
+
+          if(termMap.get(read)!=null) {
+            res[ termMap.get( read ) ][ (int)pair.getValue() ]++;
+          }
+
+        }
+
+        br.close()
+      }
+
+    } catch(IOException ex) {
+      ex.printStackTrace();
+      System.exit(1);
+    }*/
+
+    return res;
 
   }
 
