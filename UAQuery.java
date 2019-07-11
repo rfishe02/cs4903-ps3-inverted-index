@@ -23,7 +23,7 @@ public class UAQuery {
 
   public static void main(String[] args) {
 
-    String[] test = {"xxxxx"};
+    String[] test = {"cat","videos","youtube"};
 
     runQuery(test);
 
@@ -46,11 +46,13 @@ public class UAQuery {
       HashMap<Integer,Integer> docMap = new HashMap<>();
       HashMap<String,Integer> termMap = new HashMap<>();
 
-      mapRowsCols(docMap,termMap,query);
-
-
+      mapRowsCols(termMap,docMap,query);
+      float[][] tdm = buildTDM(termMap,docMap,query);
 
       RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
+
+
+
       map.close();
 
     } catch(IOException ex) {
@@ -61,7 +63,7 @@ public class UAQuery {
     return null;
   }
 
-  public static void mapRowsCols(HashMap<Integer,Integer> docMap, HashMap<String,Integer> termMap, String[] query) throws IOException {
+  public static void mapRowsCols(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, String[] query) throws IOException {
     RandomAccessFile dict = new RandomAccessFile("output/dict.raf","rw");
     RandomAccessFile post = new RandomAccessFile("output/post.raf","rw");
     String record;
@@ -108,15 +110,72 @@ public class UAQuery {
 
   } // Either approach this in two stages, or just use a LinkedList.
 
-  public static float[][] buildTDMatrix(HashMap<String,Integer> docMap, HashMap<String,Integer> termMap) {
+  public static float[][] buildTDM(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, String[] query) throws IOException {
+    RandomAccessFile dict = new RandomAccessFile("output/dict.raf","rw");
+    RandomAccessFile post = new RandomAccessFile("output/post.raf","rw");
+    String record;
+    float[][] tdm = new float[termMap.size()][docMap.size()];
+    int count;
+    int start;
+    int docID;
+    int i;
 
-    BufferedReader br;
-    String read;
-    float[][] tdm = new float[docMap.size()][termMap.size()];
+    for(String s : query) {
+      i = 0;
+      do {
+        dict.seek(hash(s,i) * (DICT_LEN+2));
+        record = dict.readUTF();
+        i++;
+      } while(record.trim().compareTo("NA") != 0 && record.trim().compareTo(s) != 0); // Find the term in the dictionary.
 
+      if(record.trim().compareTo("NA") != 0) {
+        count = dict.readInt();
+        start = dict.readInt();
 
+        post.seek(((start-count)+1) * POST_LEN);
+        for(int x = 0; x < count; x++) {
+          docID = post.readInt();
+          tdm[termMap.get(s)][docMap.get(docID)] = post.readFloat();
+        } // Read each posting listed.
+      }
+    } // Map terms & documets to columns.
+
+    dict.close();
+    post.close();
 
     return tdm;
+  }
+
+  public static void printTDM(float[][] tdm) {
+    for(int a = 0; a < tdm.length; a++) {
+      for(int b = 0; b < tdm[0].length; b++) {
+        System.out.printf("%-3.2f ",tdm[a][b]);
+      }
+      System.out.println();
+    }
+  }
+
+  public static float calcCosineSimularity(float[][] tcm, int d, int q) {
+    double one = 0.0;
+    double two = 0.0;
+    double tot = 0.0;
+
+    int j = 0;
+
+    for(int i = 0; i < tdm[0].length; i++) {
+      tot += ( tcm[i][d] * tcm[][] );
+      one += Math.pow( tcm[][],2 );
+      two += Math.pow( tcm[][],2 );
+    }
+
+    /*
+    w_(i,j) * w_(i,q) /
+    sqrt( w_(i,j)^2 ) * sqrt( w_(i,q)^2 )
+    */
+    // for document, cols -- fixed
+    // query, rows -- fixed?
+
+    return (float)( (tot) / (Math.sqrt(one) * Math.sqrt(two)) );
 
   }
 
