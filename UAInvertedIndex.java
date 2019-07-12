@@ -26,17 +26,17 @@ public class UAInvertedIndex {
     4 bytes (float) <-- RTF*IDF
 
   map.raf
-    4 bytes (int)     --> docID
+    -- 4 bytes (int)     --> docID
     25 bytes (string) --> filename
   */
 
   static final int STR_LEN = 8;
-  static final int DOCID_LEN = 5;
+  static final int DOCID_LEN = 6;
   static final int DOC_LEN = 25;
 
   static GlobalMap gh;
-  //int seed = 2000000;
-  static int seed = 5000;
+  static int seed = 2000000;
+  //static int seed = 5000;
 
   public static void main(String[] args) {
     if(test && args.length < 1) {
@@ -45,12 +45,22 @@ public class UAInvertedIndex {
       args[1] = "./output";
     }/*************************************************************************/
 
-    File inDir = new File(args[0]);
-    File outDir = new File(args[1]);
+    try {
+      File inDir = new File(args[0]);
+      File outDir = new File(args[1]);
 
-    gh = new GlobalMap(seed); // Initialize global hash table.
+      gh = new GlobalMap(seed); // Initialize global hash table.
+      buildInvertedIndex(inDir,outDir);
 
-    buildInvertedIndex(inDir,outDir);
+      RandomAccessFile stat = new RandomAccessFile(outDir.getPath()+"/stats.raf","rw");
+      stat.writeInt(gh.map.length);
+      stat.close();
+
+    } catch(IOException ex) {
+      ex.printStackTrace();
+      System.exit(1);
+    }
+
   }
 
   public static void buildInvertedIndex(File inDir, File outDir) {
@@ -63,6 +73,8 @@ public class UAInvertedIndex {
   }
 
   public static int algoOne(File inDir, File outDir, File tmpDir) {
+    System.out.println("running first pass.");
+
     SortedMap<String, Integer> ht;  // Used to sort all ht entries by term alphabetically.
     BufferedReader br;
     BufferedWriter bw = null;
@@ -113,6 +125,7 @@ public class UAInvertedIndex {
   }
 
   public static int writeTempFile(BufferedWriter bw, SortedMap<String, Integer> ht, int docID, int termID, int totalFreq) throws IOException {
+
     TermData t;
 
     for(Map.Entry<String,Integer> entry : ht.entrySet()) {
@@ -137,6 +150,8 @@ public class UAInvertedIndex {
   }
 
   public static void algoTwo(File inDir, File outDir, int size) {
+    System.out.println("running second pass.");
+
     TermData t;
     String read = "";
     String top = "";
@@ -198,6 +213,8 @@ public class UAInvertedIndex {
           }
         } // find token that is alphabetically first in the buffer.
 
+        //System.out.println(top+" ["+top.substring(0,STR_LEN).trim()+"]");
+
         t = gh.get( top.substring(0,STR_LEN).trim() );
         t.setStart(recordCount);  // Update the start field for the token in the global hash table.
         //gh.put( t );
@@ -207,8 +224,6 @@ public class UAInvertedIndex {
 
         post.writeInt(Integer.parseInt(top.substring(STR_LEN,STR_LEN+DOCID_LEN).trim())); // Write postings record for the token (documentID, termFrequency, OR rtf * idf) .
         post.writeFloat(rtfIDF);
-
-        System.out.println(top+" "+rtfIDF+" "+t);
 
         recordCount = recordCount + 1;
       } // While all postings haven't been written do this.
@@ -228,6 +243,8 @@ public class UAInvertedIndex {
   }
 
   public static void writeDictionary(File outDir) throws IOException {
+    System.out.println("writing dictionary file.");
+
     RandomAccessFile dict = new RandomAccessFile(outDir.getPath()+"/dict.raf","rw"); //write global hash table to disk as dictionary file dict.raf
     String term;
     int id;
@@ -275,6 +292,8 @@ public class UAInvertedIndex {
   */
 
   public static void mergeSort(File inDir, int n) {
+    System.out.println("merging temporary files.");
+
     BufferedReader L = null;
     BufferedReader R = null;
     BufferedWriter bw = null;

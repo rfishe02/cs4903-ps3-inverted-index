@@ -13,7 +13,6 @@ do
   else
     mkdir ./$f
   fi
-  echo $f
 done
 
 time java UAInvertedIndex $1 $2

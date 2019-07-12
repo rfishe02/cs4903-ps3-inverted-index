@@ -9,25 +9,26 @@ public class GlobalMap {
     count = 0;
   }
 
-  public int hash(String str, int i) {
-
-    return ( Math.abs(str.hashCode()) + i ) % this.map.length;
-
+  public int hash(String str, int i, int n) {
+    return ( Math.abs(str.hashCode()) + i ) % n;
   } // h(k,i) = (h'(k) + i) mod m
 
   public void put(TermData t) {
+    boolean success = false;
 
-    while(!add(this.map, t)) {
-      resizeTable(1.20);
+    while(!success) {
+      success = add(this.map, t);
+      if(!success) {
+        resizeTable(1.20);
+      }
     }
-
   }
 
   public boolean add(TermData[] m, TermData t) {
     int h;
 
     for(int i = 0; i < m.length; i++) {
-      h = hash(t.getT(),i);
+      h = hash(t.getT(),i,m.length);
 
       if(m[ h ] == null) {
         m[ h ] = t;
@@ -47,7 +48,7 @@ public class GlobalMap {
     int h;
 
     for(int i = 0; i < this.map.length; i++) {
-      h = hash(str,i);
+      h = hash(str,i,this.map.length);
 
       if(this.map[ h ] == null) {
         break;

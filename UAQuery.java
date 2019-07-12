@@ -15,7 +15,7 @@ public class UAQuery {
   static final int DICT_LEN = 8+4+4;
   static final int POST_LEN = 4+4;
   static final int DOC_LEN = 25;
-  static final int seed = 5000;
+  static int seed;
 
   /**
   The same hash function used to construct the global hash table.
@@ -37,8 +37,19 @@ public class UAQuery {
 
     } else {
 
-      File rafDir = new File(args[0]);
-      runQuery(rafDir, args);
+      try {
+        File rafDir = new File(args[0]);
+
+        RandomAccessFile stat = new RandomAccessFile(rafDir.getPath()+"/stats.raf","rw");
+        seed = stat.readInt();
+        stat.close();
+
+        runQuery(rafDir, args);
+
+      } catch(IOException ex) {
+        ex.printStackTrace();
+        System.exit(1);
+      }
 
     }
 
@@ -83,9 +94,11 @@ public class UAQuery {
   */
 
   public static void mapRowsCols(File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> q, String[] query) throws IOException {
-    RandomAccessFile dict = new RandomAccessFile("output/dict.raf","rw");
-    RandomAccessFile post = new RandomAccessFile("output/post.raf","rw");
-    RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
+    System.out.println("mapping terms and documents to rows and columns.");
+
+    RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","rw");
+    RandomAccessFile post = new RandomAccessFile(rafDir.getPath()+"/post.raf","rw");
+    RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","rw");
     BufferedReader br;
     String read;
     String record;
@@ -156,6 +169,8 @@ public class UAQuery {
   */
 
   public static float[][] buildTDM(File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> query) throws IOException {
+    System.out.println("building the term document matrix.");
+
     float[][] tdm = new float[termMap.size()][docMap.size()+1]; // Add the query column.
 
     RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","rw");
@@ -206,6 +221,8 @@ public class UAQuery {
   */
 
   public static String[] getDocs(File rafDir, HashMap<Integer,Integer> docMap, float[][] tdm, int k)  throws IOException {
+    System.out.println("finding relevant documents.");
+
     PriorityQueue<Result> pq = new PriorityQueue<>(new ResultComparator());
     RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","rw");
     String[] res = new String[k];
