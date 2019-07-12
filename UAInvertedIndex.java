@@ -12,7 +12,7 @@ import java.util.Comparator;
 
 public class UAInvertedIndex {
 
-  static boolean test = true;
+  static boolean test = false;
 
   /*
   dict.raf

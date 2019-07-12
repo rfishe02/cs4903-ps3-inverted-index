@@ -10,6 +10,8 @@ import java.util.Map;
 
 public class UAQuery {
 
+  static boolean debug = false;
+
   static final int DICT_LEN = 8+4+4;
   static final int POST_LEN = 4+4;
   static final int DOC_LEN = 25;
@@ -27,8 +29,19 @@ public class UAQuery {
   }
 
   public static void main(String[] args) {
-    String[] test = {"cat","videos","youtube"};
-    runQuery(test);
+
+    if(debug) {
+
+      String[] test = {"output","cat","videos","youtube"};
+      runQuery(new File(test[0]),test);
+
+    } else {
+
+      File rafDir = new File(args[0]);
+      runQuery(rafDir, args);
+
+    }
+
   }
 
   /**
@@ -37,7 +50,7 @@ public class UAQuery {
   @return A list of the top results for the given query.
   */
 
-  public static String[] runQuery(String[] query) {
+  public static String[] runQuery(File rafDir, String[] query) {
     String[] result = null;
 
     try {
@@ -45,12 +58,12 @@ public class UAQuery {
       HashMap<String,Integer> termMap = new HashMap<>();
       HashSet<String> q = new HashSet<>();
 
-      mapRowsCols(termMap,docMap,q,query);
-      float[][] tdm = buildTDM(termMap,docMap,q);
+      mapRowsCols(rafDir,termMap,docMap,q,query);
+      float[][] tdm = buildTDM(rafDir,termMap,docMap,q);
 
       //printTDM(tdm);
 
-      result = getDocs(docMap,tdm,5);
+      result = getDocs(rafDir,docMap,tdm,5);
 
     } catch(IOException ex) {
       ex.printStackTrace();
@@ -69,7 +82,7 @@ public class UAQuery {
   @param query A query as an array of words.
   */
 
-  public static void mapRowsCols(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> q, String[] query) throws IOException {
+  public static void mapRowsCols(File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> q, String[] query) throws IOException {
     RandomAccessFile dict = new RandomAccessFile("output/dict.raf","rw");
     RandomAccessFile post = new RandomAccessFile("output/post.raf","rw");
     RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
@@ -83,22 +96,22 @@ public class UAQuery {
     int docID;
     int i;
 
-    for(String s : query) {
+    for(int a = 1; a < query.length; a++) {
       i = 0;
       do {
-        dict.seek(hash(s,i) * (DICT_LEN+2));
+        dict.seek(hash(query[a],i) * (DICT_LEN+2));
         record = dict.readUTF();
         i++;
-      } while(record.trim().compareTo("NA") != 0 && record.trim().compareTo(s) != 0); // Find the term in the dictionary.
+      } while(record.trim().compareTo("NA") != 0 && record.trim().compareTo(query[a]) != 0); // Find the term in the dictionary.
 
       if(record.trim().compareTo("NA") != 0) {
-        if(!termMap.containsKey(s)) {
-          termMap.put(s,row);
+        if(!termMap.containsKey(query[a])) {
+          termMap.put(query[a],row);
           row++;
         } // Map terms to rows.
 
-        if(!q.contains(s)) {
-          q.add(s);
+        if(!q.contains(query[a])) {
+          q.add(query[a]);
         } // Add terms in query to HashSet.
 
         count = dict.readInt();
@@ -142,11 +155,11 @@ public class UAQuery {
   @param query A hash set that will contain all distinct words in the query.
   */
 
-  public static float[][] buildTDM(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> query) throws IOException {
+  public static float[][] buildTDM(File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> query) throws IOException {
     float[][] tdm = new float[termMap.size()][docMap.size()+1]; // Add the query column.
 
-    RandomAccessFile dict = new RandomAccessFile("output/dict.raf","rw");
-    RandomAccessFile post = new RandomAccessFile("output/post.raf","rw");
+    RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","rw");
+    RandomAccessFile post = new RandomAccessFile(rafDir.getPath()+"/post.raf","rw");
     String record;
     float rtfIDF;
     int count;
@@ -192,9 +205,9 @@ public class UAQuery {
   @param k
   */
 
-  public static String[] getDocs(HashMap<Integer,Integer> docMap, float[][] tdm, int k)  throws IOException {
+  public static String[] getDocs(File rafDir, HashMap<Integer,Integer> docMap, float[][] tdm, int k)  throws IOException {
     PriorityQueue<Result> pq = new PriorityQueue<>(new ResultComparator());
-    RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
+    RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","rw");
     String[] res = new String[k];
 
     for( Map.Entry<Integer,Integer> entry : docMap.entrySet() ) {
