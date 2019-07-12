@@ -164,7 +164,7 @@ public class UAQuery {
 
           if( query.contains( entry.getKey() ) ) {
             System.out.println( entry.getKey() +" "+entry.getValue()+" "+ rtfIDF);
-            tdm[ entry.getValue() ][ 0 ] = rtfIDF;
+            tdm[ entry.getValue() ][ 0 ]++;
           }
 
         }
@@ -182,6 +182,7 @@ public class UAQuery {
 
   public static void printTDM(float[][] tdm) {
     for(int a = 0; a < tdm.length; a++) {
+      System.out.printf("[ %-3s ] ",a);
       for(int b = 0; b < tdm[0].length; b++) {
         System.out.printf("%-3.2f ",tdm[a][b]);
       }
