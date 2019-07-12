@@ -12,8 +12,6 @@ import java.util.Comparator;
 
 public class UAInvertedIndex {
 
-  boolean test = true;
-
   /*
   dict.raf
     8 bytes (string) <-- term
@@ -70,9 +68,9 @@ public class UAInvertedIndex {
         totalFreq = 0; // Set totalFreq to zero.
 
         while((read = br.readLine())!=null) {
-          if(test && read.length() > 8) {
-            read = read.substring(0,8);
-          }/*******************************************************************/
+          if(read.length() > STR_LEN) {
+            read = read.substring(0,STR_LEN);
+          }
 
           if( ht.containsKey( read ) ) {
             ht.put( read, ht.get( read )+1);

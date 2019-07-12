@@ -15,6 +15,10 @@ public class UAQuery {
   final int DOC_LEN = 25;
   final int seed = 5000;
 
+  public UAQuery() {
+    
+  }
+
   /**
   The same hash function used to construct the global hash table.
   @param str  A key.
