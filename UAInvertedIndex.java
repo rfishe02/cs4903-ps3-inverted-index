@@ -12,7 +12,7 @@ import java.util.Comparator;
 
 public class UAInvertedIndex {
 
-  static boolean test = false;
+  static boolean test = true;
 
   /*
   dict.raf
@@ -36,10 +36,10 @@ public class UAInvertedIndex {
 
   static GlobalMap gh;
   static int seed = 2000000;
-  //static int seed = 5000;
 
   public static void main(String[] args) {
     if(test && args.length < 1) {
+      seed = 90000;
       args = new String[2];
       args[0] = "./input";
       args[1] = "./output";
@@ -87,7 +87,7 @@ public class UAInvertedIndex {
       RandomAccessFile map = new RandomAccessFile(outDir.getPath()+"/map.raf","rw");
 
       for(File d : inDir.listFiles()) {
-        br = new BufferedReader(new FileReader(d));
+        br = new BufferedReader(new InputStreamReader(new FileInputStream(d), "UTF8"));
 
         ht = new TreeMap<String,Integer>(new TermComparator()); // Initialize a document hash table.
         totalFreq = 0; // Set totalFreq to zero.
@@ -104,7 +104,7 @@ public class UAInvertedIndex {
           }
           totalFreq++;
         }
-        bw = new BufferedWriter(new FileWriter(tmpDir.getPath()+"/doc"+docID+".temp")); // Open new temporary file f.
+        bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmpDir.getPath()+"/doc"+docID+".temp"), "UTF8")); // Open new temporary file f.
         termID = writeTempFile(bw, ht, docID, termID, totalFreq);
         bw.close();  // Close temp file f.
 
@@ -164,7 +164,7 @@ public class UAInvertedIndex {
       File[] files = inDir.listFiles();
       BufferedReader[] br = new BufferedReader[files.length];
       for(int a = 0; a < files.length; a++) {
-        br[a] = new BufferedReader(new FileReader(files[a]));
+        br[a] = new BufferedReader(new InputStreamReader(new FileInputStream(files[a]), "UTF8"));
       }
 
       RandomAccessFile post = new RandomAccessFile(outDir.getPath()+"/post.raf","rw"); // Create & open a new file for postings, post.raf .
@@ -251,12 +251,12 @@ public class UAInvertedIndex {
     int ct;
     int st;
 
-    for(TermData t : gh.map) {
-      if(t != null) {
-        term = t.getT();
+    for(int i = 0; i < gh.map.length; i++) {
+      if(gh.map[i] != null) {
+        term = gh.map[i].getT();
         //id = t.getID();
-        ct = t.getCount();
-        st = t.getStart();
+        ct = gh.map[i].getCount();
+        st = gh.map[i].getStart();
       } else {
         term = "NA";
         id = -1;
@@ -267,6 +267,10 @@ public class UAInvertedIndex {
       //dict.writeInt( id );
       dict.writeInt( ct );
       dict.writeInt( st );
+    }
+
+    for(TermData t : gh.map) {
+
     }
 
     dict.close();
@@ -343,10 +347,11 @@ public class UAInvertedIndex {
     int z = z = q + 1;
     String filename = "tmp/"+p+""+z+""+r+".tmp";
 
-    L = new BufferedReader( new FileReader(A[p]) ); // Open the files at the given indices.
-    R = new BufferedReader( new FileReader(A[z]) );
+    L = new BufferedReader(new InputStreamReader(new FileInputStream(A[p]), "UTF8")); // Open the files at the given indices.
+    R = new BufferedReader(new InputStreamReader(new FileInputStream(A[z]), "UTF8"));
 
-    bw = new BufferedWriter(new FileWriter(filename)); // Create a new file, which will contain the merged data.
+    bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "UTF8"));  // Create a new file, which will contain the merged data.
+
     String s1 = L.readLine();
     String s2 = R.readLine();
 

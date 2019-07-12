@@ -1,12 +1,9 @@
 
 public class GlobalMap {
-
   TermData[] map;
-  int count;
 
   public GlobalMap(int size) {
     this.map = new TermData[size];
-    count = 0;
   }
 
   public int hash(String str, int i, int n) {
@@ -19,7 +16,7 @@ public class GlobalMap {
     while(!success) {
       success = add(this.map, t);
       if(!success) {
-        resizeTable(1.20);
+        resizeTable(1.25);
       }
     }
   }
@@ -32,7 +29,6 @@ public class GlobalMap {
 
       if(m[ h ] == null) {
         m[ h ] = t;
-        count++;
         return true;
 
       } else if(m[ h ].getT().compareToIgnoreCase(t.getT()) == 0) {
@@ -64,6 +60,8 @@ public class GlobalMap {
   }
 
   public void resizeTable(double inc) {
+
+    System.out.println("RESIZE");
 
     TermData[] newMap = new TermData[(int)(this.map.length*inc) + 1];
 

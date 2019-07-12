@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class UAQuery {
 
-  static boolean debug = false;
+  static boolean debug = true;
 
   static final int DICT_LEN = 8+4+4;
   static final int POST_LEN = 4+4;
@@ -30,26 +30,28 @@ public class UAQuery {
 
   public static void main(String[] args) {
 
+    File rafDir = new File("output");
+
+    try {
+      RandomAccessFile stat = new RandomAccessFile(rafDir.getPath()+"/stats.raf","rw");
+      stat.seek(0);
+      seed = stat.readInt();
+      stat.close();
+
+    } catch(IOException ex) {
+      ex.printStackTrace();
+      System.exit(1);
+    }
+
     if(debug) {
 
-      String[] test = {"output","cat","videos","youtube"};
+      String[] test = {"output","cat","video","youtube"};
       runQuery(new File(test[0]),test);
 
     } else {
 
-      try {
-        File rafDir = new File(args[0]);
-
-        RandomAccessFile stat = new RandomAccessFile(rafDir.getPath()+"/stats.raf","rw");
-        seed = stat.readInt();
-        stat.close();
-
-        runQuery(rafDir, args);
-
-      } catch(IOException ex) {
-        ex.printStackTrace();
-        System.exit(1);
-      }
+      rafDir = new File(args[0]);
+      runQuery(rafDir, args);
 
     }
 
@@ -111,7 +113,19 @@ public class UAQuery {
 
     for(int a = 1; a < query.length; a++) {
       i = 0;
+
       do {
+        System.out.println(query[a]);
+        System.out.println(hash(query[a],i));
+        dict.seek(hash(query[a],i) * (DICT_LEN+2));
+        System.out.println(dict.length());
+
+        System.out.println(hash(query[a],i) * (DICT_LEN+2));
+
+        for(int z = 0 ; z < 8 ;z ++) {
+          System.out.println(dict.readByte());
+        }
+
         dict.seek(hash(query[a],i) * (DICT_LEN+2));
         record = dict.readUTF();
         i++;
