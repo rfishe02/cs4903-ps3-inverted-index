@@ -62,7 +62,7 @@ public class UAQuery {
     String read;
     String record;
     int row = 0;
-    int col = 1;
+    int col = 1; // Reserve first column for the query.
     int count;
     int start;
     int docID;
@@ -115,16 +115,13 @@ public class UAQuery {
       }
     } // Map terms & documets to columns.
 
-    docMap.put(-1,0); // Map query column to the first column.
-
     dict.close();
     post.close();
     map.close();
-
   }
 
   public static float[][] buildTDM(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> query) throws IOException {
-    float[][] tdm = new float[termMap.size()][docMap.size()];
+    float[][] tdm = new float[termMap.size()][docMap.size()+1]; // Add the query column.
 
     RandomAccessFile dict = new RandomAccessFile("output/dict.raf","rw");
     RandomAccessFile post = new RandomAccessFile("output/post.raf","rw");
@@ -147,7 +144,7 @@ public class UAQuery {
       start = dict.readInt();
 
       if( query.contains( entry.getKey() ) ) {
-        tdm[ entry.getValue() ][ 0 ] = count;
+        tdm[ entry.getValue() ][ 0 ] = count; // Need to determine the correct value, ie: TF-IDF.
       }
 
       post.seek(((start-count)+1) * POST_LEN);
@@ -168,16 +165,13 @@ public class UAQuery {
   }
 
   public static String[] getDocs(HashMap<Integer,Integer> docMap, float[][] tdm, int k)  throws IOException {
-
-    RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
     PriorityQueue<Result> pq = new PriorityQueue<>(new ResultComparator());
+    RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
     String[] res = new String[k];
 
-    for( Map.Entry<Integer,Integer> entry : docMap.entrySet()) {
-      if(entry.getValue() != 0) {
-        map.seek(entry.getKey() * (DOC_LEN + 2));
-        pq.add(new Result( calcCosineSim(tdm, entry.getValue(), 0), map.readUTF() ));
-      }
+    for( Map.Entry<Integer,Integer> entry : docMap.entrySet() ) {
+      map.seek(entry.getKey() * (DOC_LEN + 2));
+      pq.add(new Result( calcCosineSim(tdm, entry.getValue(), 0), map.readUTF() ));
     }
 
     int j = 0;
@@ -189,7 +183,6 @@ public class UAQuery {
 
     map.close();
     return res;
-
   }
 
   static class Result {
