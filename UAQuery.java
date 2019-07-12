@@ -10,14 +10,10 @@ import java.util.Map;
 
 public class UAQuery {
 
-  final int DICT_LEN = 8+4+4;
-  final int POST_LEN = 4+4;
-  final int DOC_LEN = 25;
-  final int seed = 5000;
-
-  public UAQuery() {
-    
-  }
+  static final int DICT_LEN = 8+4+4;
+  static final int POST_LEN = 4+4;
+  static final int DOC_LEN = 25;
+  static final int seed = 5000;
 
   /**
   The same hash function used to construct the global hash table.
@@ -26,8 +22,13 @@ public class UAQuery {
   @return A hashcode for a given String.
   */
 
-  public int hash(String str, int i) {
+  public static int hash(String str, int i) {
     return ( Math.abs(str.hashCode()) + i ) % seed;
+  }
+
+  public static void main(String[] args) {
+    String[] test = {"cat","videos","youtube"};
+    runQuery(test);
   }
 
   /**
@@ -36,7 +37,7 @@ public class UAQuery {
   @return A list of the top results for the given query.
   */
 
-  public String[] runQuery(String[] query) {
+  public static String[] runQuery(String[] query) {
     String[] result = null;
 
     try {
@@ -68,7 +69,7 @@ public class UAQuery {
   @param query A query as an array of words.
   */
 
-  public void mapRowsCols(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> q, String[] query) throws IOException {
+  public static void mapRowsCols(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> q, String[] query) throws IOException {
     RandomAccessFile dict = new RandomAccessFile("output/dict.raf","rw");
     RandomAccessFile post = new RandomAccessFile("output/post.raf","rw");
     RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
@@ -141,7 +142,7 @@ public class UAQuery {
   @param query A hash set that will contain all distinct words in the query.
   */
 
-  public float[][] buildTDM(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> query) throws IOException {
+  public static float[][] buildTDM(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> query) throws IOException {
     float[][] tdm = new float[termMap.size()][docMap.size()+1]; // Add the query column.
 
     RandomAccessFile dict = new RandomAccessFile("output/dict.raf","rw");
@@ -191,7 +192,7 @@ public class UAQuery {
   @param k
   */
 
-  public String[] getDocs(HashMap<Integer,Integer> docMap, float[][] tdm, int k)  throws IOException {
+  public static String[] getDocs(HashMap<Integer,Integer> docMap, float[][] tdm, int k)  throws IOException {
     PriorityQueue<Result> pq = new PriorityQueue<>(new ResultComparator());
     RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
     String[] res = new String[k];
@@ -214,7 +215,7 @@ public class UAQuery {
 
   /** */
 
-  class Result {
+  static class Result {
     float score;
     String name;
 
@@ -226,7 +227,7 @@ public class UAQuery {
 
   /** */
 
-  class ResultComparator implements Comparator<Result> {
+  static class ResultComparator implements Comparator<Result> {
     public int compare(Result s1, Result s2) {
       if(s1.score > s2.score) {
         return -1;
@@ -243,7 +244,7 @@ public class UAQuery {
   @param q
   */
 
-  public float calcCosineSim(float[][] tdm, int d, int q) {
+  public static float calcCosineSim(float[][] tdm, int d, int q) {
     double one = 0.0;
     double two = 0.0;
     double tot = 0.0;
@@ -261,7 +262,7 @@ public class UAQuery {
   @param tdm
   */
 
-  public void printTDM(float[][] tdm) {
+  public static void printTDM(float[][] tdm) {
     for(int a = 0; a < tdm.length; a++) {
       System.out.printf("[ %-3s ] ",a);
       for(int b = 0; b < tdm[0].length; b++) {

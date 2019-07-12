@@ -12,6 +12,8 @@ import java.util.Comparator;
 
 public class UAInvertedIndex {
 
+  static boolean test = true;
+
   /*
   dict.raf
     8 bytes (string) <-- term
@@ -28,19 +30,30 @@ public class UAInvertedIndex {
     25-30 bytes (string) --> filename
   */
 
-  final int STR_LEN = 8;
-  final int DOCID_LEN = 5;
-  final int DOC_LEN = 25;
+  static final int STR_LEN = 8;
+  static final int DOCID_LEN = 5;
+  static final int DOC_LEN = 25;
 
-  GlobalMap gh;
+  static GlobalMap gh;
   //int seed = 2000000;
-  int seed = 5000;
+  static int seed = 5000;
 
-  public UAInvertedIndex() {
+  public static void main(String[] args) {
+    if(test && args.length < 1) {
+      args = new String[2];
+      args[0] = "./input";
+      args[1] = "./output";
+    }/*************************************************************************/
+
+    File inDir = new File(args[0]);
+    File outDir = new File(args[1]);
+
     gh = new GlobalMap(seed); // Initialize global hash table.
+
+    buildInvertedIndex(inDir,outDir);
   }
 
-  public void buildInvertedIndex(File inDir, File outDir) {
+  public static void buildInvertedIndex(File inDir, File outDir) {
 
     int size = algoOne(inDir,outDir,new File("temp"));
 
@@ -49,7 +62,7 @@ public class UAInvertedIndex {
 
   }
 
-  public int algoOne(File inDir, File outDir, File tmpDir) {
+  public static int algoOne(File inDir, File outDir, File tmpDir) {
     SortedMap<String, Integer> ht;  // Used to sort all ht entries by term alphabetically.
     BufferedReader br;
     BufferedWriter bw = null;
@@ -99,7 +112,7 @@ public class UAInvertedIndex {
     return docID;
   }
 
-  public int writeTempFile(BufferedWriter bw, SortedMap<String, Integer> ht, int docID, int termID, int totalFreq) throws IOException {
+  public static int writeTempFile(BufferedWriter bw, SortedMap<String, Integer> ht, int docID, int termID, int totalFreq) throws IOException {
     TermData t;
 
     for(Map.Entry<String,Integer> entry : ht.entrySet()) {
@@ -123,7 +136,7 @@ public class UAInvertedIndex {
     return termID;
   }
 
-  public void algoTwo(File inDir, File outDir, int size) {
+  public static void algoTwo(File inDir, File outDir, int size) {
     TermData t;
     String read = "";
     String top = "";
@@ -214,7 +227,7 @@ public class UAInvertedIndex {
     }
   }
 
-  public void writeDictionary(File outDir) throws IOException {
+  public static void writeDictionary(File outDir) throws IOException {
     RandomAccessFile dict = new RandomAccessFile(outDir.getPath()+"/dict.raf","rw"); //write global hash table to disk as dictionary file dict.raf
     String term;
     int id;
@@ -242,14 +255,14 @@ public class UAInvertedIndex {
     dict.close();
   }
 
-  public String formatString(String str, int limit) {
+  public static String formatString(String str, int limit) {
     if(str.length() > limit) {
       str = str.substring(0,limit);
     }
     return String.format("%-"+limit+"s",str);
   }
 
-  class TermComparator implements Comparator<String> {
+  static class TermComparator implements Comparator<String> {
     public int compare(String s1, String s2) {
       return s1.compareToIgnoreCase(s2);
     }
@@ -261,7 +274,7 @@ public class UAInvertedIndex {
       the array, it just uses the values p and q to combine files.
   */
 
-  public void mergeSort(File inDir, int n) {
+  public static void mergeSort(File inDir, int n) {
     BufferedReader L = null;
     BufferedReader R = null;
     BufferedWriter bw = null;
@@ -307,7 +320,7 @@ public class UAInvertedIndex {
      p: 0  q: 4 --> merge the files at index zero and four.
   */
 
-  public void merge(File[] A, BufferedReader L, BufferedReader R, BufferedWriter bw, int p, int q, int r) throws IOException {
+  public static void merge(File[] A, BufferedReader L, BufferedReader R, BufferedWriter bw, int p, int q, int r) throws IOException {
     int z = z = q + 1;
     String filename = "tmp/"+p+""+z+""+r+".tmp";
 
