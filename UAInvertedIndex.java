@@ -17,7 +17,7 @@ public class UAInvertedIndex {
   /*
   dict.raf
     8 bytes (string) <-- term
-    4 bytes (int)    <-- termID
+    -- 4 bytes (int)    <-- termID
     4 bytes (float)  <-- termFrequency / RTF
     4 bytes (int)    <-- start
 
@@ -26,8 +26,8 @@ public class UAInvertedIndex {
     4 bytes (float) <-- RTF*IDF
 
   map.raf
-    4 bytes (int)        --> docID
-    25-30 bytes (string) --> filename
+    4 bytes (int)     --> docID
+    25 bytes (string) --> filename
   */
 
   static final int STR_LEN = 8;
