@@ -35,14 +35,6 @@ public class UAQuery {
 
     try {
 
-      /*
-      Build a document term matrix, then use RTFIDF to calculate cosine similarity.
-      Built a |V| x |D| matrix, of floats.
-
-      known: |V|
-      unknown: |D|
-      */
-
       HashMap<Integer,Integer> docMap = new HashMap<>();
       HashMap<String,Integer> termMap = new HashMap<>();
       HashSet<String> q = new HashSet<>();
@@ -50,7 +42,9 @@ public class UAQuery {
       mapRowsCols(termMap,docMap,q,query);
       float[][] tdm = buildTDM(termMap,docMap,q);
 
-      printTDM(tdm);
+      //printTDM(tdm);
+
+      getDocs(docMap,tdm,5);
 
     } catch(IOException ex) {
       ex.printStackTrace();
@@ -127,14 +121,13 @@ public class UAQuery {
     post.close();
     map.close();
 
-  } // Either approach this in two stages, or just use a LinkedList.
+  }
 
   public static float[][] buildTDM(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> query) throws IOException {
     float[][] tdm = new float[termMap.size()][docMap.size()];
 
     RandomAccessFile dict = new RandomAccessFile("output/dict.raf","rw");
     RandomAccessFile post = new RandomAccessFile("output/post.raf","rw");
-    RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
     String record;
     float rtfIDF;
     int count;
@@ -153,31 +146,90 @@ public class UAQuery {
       count = dict.readInt();
       start = dict.readInt();
 
+      if( query.contains( entry.getKey() ) ) {
+        tdm[ entry.getValue() ][ 0 ] = count;
+      }
+
       post.seek(((start-count)+1) * POST_LEN);
       for(int x = 0; x < count; x++) {
         docID = post.readInt();
         rtfIDF = post.readFloat();
 
         if(docMap.containsKey(docID)) {
-
           tdm[ entry.getValue() ][ docMap.get(docID) ] = rtfIDF;
-
-          if( query.contains( entry.getKey() ) ) {
-            System.out.println( entry.getKey() +" "+entry.getValue()+" "+ rtfIDF);
-            tdm[ entry.getValue() ][ 0 ]++;
-          }
-
         }
-
       } // Read each posting for the term.
-
     }
 
     dict.close();
     post.close();
-    map.close();
 
     return tdm;
+  }
+
+  public static String[] getDocs(HashMap<Integer,Integer> docMap, float[][] tdm, int k)  throws IOException {
+
+    RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
+    PriorityQueue<Result> pq = new PriorityQueue<>(new ResultComparator());
+    String[] res = new String[k];
+
+    for( Map.Entry<Integer,Integer> entry : docMap.entrySet()) {
+      if(entry.getValue() != 0) {
+        map.seek(entry.getKey() * (DOC_LEN + 2));
+        pq.add(new Result( calcCosineSim(tdm, entry.getValue(), 0), map.readUTF() ));
+      }
+    }
+
+    int j = 0;
+    while(j < k && !pq.isEmpty()) {
+      res[j] = pq.remove().name;
+      System.out.println(res[j]);
+      j++;
+    }
+
+    map.close();
+    return res;
+
+  }
+
+  static class Result {
+    float score;
+    String name;
+
+    public Result(float score, String name) {
+      this.score = score;
+      this.name = name;
+    }
+  }
+
+  static class ResultComparator implements Comparator<Result> {
+    public int compare(Result s1, Result s2) {
+      if(s1.score > s2.score) {
+        return -1;
+      } else if(s1.score < s2.score) {
+        return 1;
+      } else {
+        return 0;        }
+    }
+  }
+
+  public static float calcCosineSim(float[][] tdm, int d, int q) {
+    double one = 0.0;
+    double two = 0.0;
+    double tot = 0.0;
+
+    /*
+      w_(i,j) * w_(i,q) /
+      sqrt( w_(i,j)^2 ) * sqrt( w_(i,q)^2 )
+    */
+
+    for(int i = 0; i < tdm.length; i++) {
+      tot += ( tdm[i][d] * tdm[i][q] );
+      one += Math.pow( tdm[i][d],2 );
+      two += Math.pow( tdm[i][q],2 );
+    }
+
+    return (float)( (tot) / (Math.sqrt(one) * Math.sqrt(two)) );
   }
 
   public static void printTDM(float[][] tdm) {
@@ -188,30 +240,6 @@ public class UAQuery {
       }
       System.out.println();
     }
-  }
-
-  public static float calcCosineSimularity(float[][] tdm, int d, int q) {
-    double one = 0.0;
-    double two = 0.0;
-    double tot = 0.0;
-
-    int j = 0;
-
-    for(int i = 0; i < tdm[0].length; i++) {
-      //tot += ( tcm[i][d] * tcm[][] );
-      //one += Math.pow( tcm[][],2 );
-      //two += Math.pow( tcm[][],2 );
-    }
-
-    /*
-    w_(i,j) * w_(i,q) /
-    sqrt( w_(i,j)^2 ) * sqrt( w_(i,q)^2 )
-    */
-    // for document, cols -- fixed
-    // query, rows -- fixed?
-
-    return (float)( (tot) / (Math.sqrt(one) * Math.sqrt(two)) );
-
   }
 
   /*
