@@ -10,31 +10,32 @@ import java.util.Map;
 
 public class UAQuery {
 
-  // Don't create a TCM for all documents, just those in the query.
+  final int DICT_LEN = 8+4+4;
+  final int POST_LEN = 4+4;
+  final int DOC_LEN = 25;
+  final int seed = 5000;
 
-  static final int DICT_LEN = 8+4+4;
-  static final int POST_LEN = 4+4;
-  static final int DOC_LEN = 25;
-  static final int seed = 5000;
+  /**
+  The same hash function used to construct the global hash table.
+  @param str  A key.
+  @param i An index.
+  @return A hashcode for a given String.
+  */
 
-  public static int hash(String str, int i) {
+  public int hash(String str, int i) {
     return ( Math.abs(str.hashCode()) + i ) % seed;
   }
 
-  public static void main(String[] args) {
+  /**
+  The function used to process a query and return a list of results.
+  @param query A query as an array of words.
+  @return A list of the top results for the given query.
+  */
 
-    String[] test = {"cat","videos","youtube"};
-
-    runQuery(test);
-
-  }
-
-  public static String[] runQuery(String[] query) {
-
-    String filename;
+  public String[] runQuery(String[] query) {
+    String[] result = null;
 
     try {
-
       HashMap<Integer,Integer> docMap = new HashMap<>();
       HashMap<String,Integer> termMap = new HashMap<>();
       HashSet<String> q = new HashSet<>();
@@ -44,17 +45,26 @@ public class UAQuery {
 
       //printTDM(tdm);
 
-      getDocs(docMap,tdm,5);
+      result = getDocs(docMap,tdm,5);
 
     } catch(IOException ex) {
       ex.printStackTrace();
       System.exit(1);
     }
 
-    return null;
+    return result;
   }
 
-  public static void mapRowsCols(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> q, String[] query) throws IOException {
+  /**
+  Use the query and raf files to map terms and document IDs to rows and columns. This information
+  will be used to build the term document matrix.
+  @param termMap A hash table that maps terms to rows in the term document matrix.
+  @param docMap A hash table that maps document IDs to columns in the term document matrix.
+  @param q A hash set that will contain all distinct words in the query.
+  @param query A query as an array of words.
+  */
+
+  public void mapRowsCols(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> q, String[] query) throws IOException {
     RandomAccessFile dict = new RandomAccessFile("output/dict.raf","rw");
     RandomAccessFile post = new RandomAccessFile("output/post.raf","rw");
     RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
@@ -120,7 +130,14 @@ public class UAQuery {
     map.close();
   }
 
-  public static float[][] buildTDM(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> query) throws IOException {
+  /**
+  Use hash tables to construct the term document matrix.
+  @param termMap A hash table that maps terms to rows in the term document matrix.
+  @param docMap A hash table that maps document IDs to columns in the term document matrix.
+  @param query A hash set that will contain all distinct words in the query.
+  */
+
+  public float[][] buildTDM(HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> query) throws IOException {
     float[][] tdm = new float[termMap.size()][docMap.size()+1]; // Add the query column.
 
     RandomAccessFile dict = new RandomAccessFile("output/dict.raf","rw");
@@ -164,7 +181,13 @@ public class UAQuery {
     return tdm;
   }
 
-  public static String[] getDocs(HashMap<Integer,Integer> docMap, float[][] tdm, int k)  throws IOException {
+  /**
+  @param docMap
+  @param tdm
+  @param k
+  */
+
+  public String[] getDocs(HashMap<Integer,Integer> docMap, float[][] tdm, int k)  throws IOException {
     PriorityQueue<Result> pq = new PriorityQueue<>(new ResultComparator());
     RandomAccessFile map = new RandomAccessFile("output/map.raf","rw");
     String[] res = new String[k];
@@ -185,7 +208,9 @@ public class UAQuery {
     return res;
   }
 
-  static class Result {
+  /** */
+
+  class Result {
     float score;
     String name;
 
@@ -195,7 +220,9 @@ public class UAQuery {
     }
   }
 
-  static class ResultComparator implements Comparator<Result> {
+  /** */
+
+  class ResultComparator implements Comparator<Result> {
     public int compare(Result s1, Result s2) {
       if(s1.score > s2.score) {
         return -1;
@@ -206,15 +233,16 @@ public class UAQuery {
     }
   }
 
-  public static float calcCosineSim(float[][] tdm, int d, int q) {
+  /**
+  @param tdm
+  @param d
+  @param q
+  */
+
+  public float calcCosineSim(float[][] tdm, int d, int q) {
     double one = 0.0;
     double two = 0.0;
     double tot = 0.0;
-
-    /*
-      w_(i,j) * w_(i,q) /
-      sqrt( w_(i,j)^2 ) * sqrt( w_(i,q)^2 )
-    */
 
     for(int i = 0; i < tdm.length; i++) {
       tot += ( tdm[i][d] * tdm[i][q] );
@@ -225,7 +253,11 @@ public class UAQuery {
     return (float)( (tot) / (Math.sqrt(one) * Math.sqrt(two)) );
   }
 
-  public static void printTDM(float[][] tdm) {
+  /**
+  @param tdm
+  */
+
+  public void printTDM(float[][] tdm) {
     for(int a = 0; a < tdm.length; a++) {
       System.out.printf("[ %-3s ] ",a);
       for(int b = 0; b < tdm[0].length; b++) {
@@ -234,61 +266,5 @@ public class UAQuery {
       System.out.println();
     }
   }
-
-  /*
-  dict.seek(hash("youtube",0) * (DICT_LEN+2));
-  String record = dict.readUTF();
-  int count = dict.readInt();
-  int start = dict.readInt();
-
-  System.out.println(record+" "+count+" "+start);
-
-  File[] files = new File[count];
-  int docID;
-  int a = 0;
-
-  post.seek(((start-count)+1) * POST_LEN);
-  for(int i = 0; i < count; i++) {
-    docID = post.readInt();
-    System.out.println(docID+" "+post.readFloat());
-
-    map.seek(docID * (DOC_LEN + 2));
-    files[a] = new File("input/"+map.readUTF());
-    a++;
-
-  }
-
-  Semantic s = new Semantic();
-  ArrayList<String> vocab = s.getVocab(files);
-  float[][] tcm = s.buildTermContextMatrix(files,vocab,vocab.size(),8);
-
-  int u = s.wordSearch(vocab, "youtube");
-  s.getContext(vocab,tcm,10,u);
-  */
-
-  /*
-  try {
-
-    Iterator it = mp.entrySet().iterator();
-    while (it.hasNext()) {
-      Map.Entry pair = (Map.Entry)it.next();
-
-      br = new BufferedReader(new FileReader(inDir.getPath()+"/"+(String)pair.getKey()));
-
-      while((read=br.readLine())!=null) {
-
-        if(termMap.get(read)!=null) {
-          res[ termMap.get( read ) ][ (int)pair.getValue() ]++;
-        }
-
-      }
-
-      br.close()
-    }
-
-  } catch(IOException ex) {
-    ex.printStackTrace();
-    System.exit(1);
-  }*/
 
 }
