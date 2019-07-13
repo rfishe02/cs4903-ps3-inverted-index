@@ -94,6 +94,9 @@ public class UAInvertedIndex {
         totalFreq = 0; // Set totalFreq to zero.
 
         while((read = br.readLine())!=null) {
+
+          read = new String(read.getBytes(), Charset.forName("UTF-8"));
+
           if(read.length() > STR_LEN) {
             read = read.substring(0,STR_LEN);
           }
@@ -132,21 +135,19 @@ public class UAInvertedIndex {
 
     for(Map.Entry<String,Integer> entry : ht.entrySet()) {
 
-      out = new String(entry.getKey().getBytes(), Charset.forName("UTF-8"));
-
-      if( ( t = gh.get( out ) ) != null ) {
+      if( ( t = gh.get( entry.getKey() ) ) != null ) {
         t.setCount(t.getCount() + 1);
         //gh.put(t);
 
       } else {
 
-        t = new TermData(out,termID,1); // put( t, <termID, # documents = 1> )
+        t = new TermData(entry.getKey(),termID,1); // put( t, <termID, # documents = 1> )
         gh.put(t);
         termID = termID + 1;
 
       } // If a term hasn't been found in prior documents.
 
-      bw.write( String.format( "%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-8f\n", formatString( out, STR_LEN ) , docID, ((double)entry.getValue()/totalFreq) ) ); // f.write( t, documentID, (tf / totalFrequency) )
+      bw.write( String.format( "%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-8f\n", formatString( entry.getKey(), STR_LEN ) , docID, ((double)entry.getValue()/totalFreq) ) ); // f.write( t, documentID, (tf / totalFrequency) )
 
     }  // For all term t in document hash table ht, do this.
 
