@@ -115,17 +115,6 @@ public class UAQuery {
       i = 0;
 
       do {
-        System.out.println(query[a]);
-        System.out.println(hash(query[a],i));
-        dict.seek(hash(query[a],i) * (DICT_LEN+2));
-        System.out.println(dict.length());
-
-        System.out.println(hash(query[a],i) * (DICT_LEN+2));
-
-        for(int z = 0 ; z < 8 ;z ++) {
-          System.out.println(dict.readByte());
-        }
-
         dict.seek(hash(query[a],i) * (DICT_LEN+2));
         record = dict.readUTF();
         i++;

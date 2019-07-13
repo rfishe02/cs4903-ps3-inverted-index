@@ -5,6 +5,7 @@ import java.util.SortedMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Comparator;
+import java.nio.charset.*;
 
 /*
   Consider removing termID from application if you do not intend to use it.
@@ -126,23 +127,26 @@ public class UAInvertedIndex {
 
   public static int writeTempFile(BufferedWriter bw, SortedMap<String, Integer> ht, int docID, int termID, int totalFreq) throws IOException {
 
+    String out;
     TermData t;
 
     for(Map.Entry<String,Integer> entry : ht.entrySet()) {
 
-      if( ( t = gh.get( entry.getKey() ) ) != null ) {
+      out = new String(entry.getKey().getBytes(), Charset.forName("UTF-8"));
+
+      if( ( t = gh.get( out ) ) != null ) {
         t.setCount(t.getCount() + 1);
         //gh.put(t);
 
       } else {
 
-        t = new TermData(entry.getKey(),termID,1); // put( t, <termID, # documents = 1> )
+        t = new TermData(out,termID,1); // put( t, <termID, # documents = 1> )
         gh.put(t);
         termID = termID + 1;
 
       } // If a term hasn't been found in prior documents.
 
-      bw.write( String.format( "%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-8f\n", formatString( entry.getKey(), STR_LEN ) , docID, ((double)entry.getValue()/totalFreq) ) ); // f.write( t, documentID, (tf / totalFrequency) )
+      bw.write( String.format( "%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-8f\n", formatString( out, STR_LEN ) , docID, ((double)entry.getValue()/totalFreq) ) ); // f.write( t, documentID, (tf / totalFrequency) )
 
     }  // For all term t in document hash table ht, do this.
 
@@ -263,6 +267,9 @@ public class UAInvertedIndex {
         ct = -1;
         st = -1;
       }
+
+      term = new String(term.getBytes(), Charset.forName("UTF-8"));
+
       dict.writeUTF( formatString( term, STR_LEN ) );
       //dict.writeInt( id );
       dict.writeInt( ct );
@@ -280,6 +287,7 @@ public class UAInvertedIndex {
     if(str.length() > limit) {
       str = str.substring(0,limit);
     }
+
     return String.format("%-"+limit+"s",str);
   }
 

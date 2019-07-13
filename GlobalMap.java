@@ -49,7 +49,7 @@ public class GlobalMap {
       if(this.map[ h ] == null) {
         break;
       } else {
-        if(this.map[ h ].getT().compareTo(str) == 0) {
+        if(this.map[ h ].getT().compareToIgnoreCase(str) == 0) {
           return this.map[ h ];
         }
       }
@@ -60,13 +60,12 @@ public class GlobalMap {
   }
 
   public void resizeTable(double inc) {
+    TermData[] newMap = new TermData[ (int)(this.map.length*inc) + 1 ];
 
-    System.out.println("RESIZE");
-
-    TermData[] newMap = new TermData[(int)(this.map.length*inc) + 1];
-
-    for(TermData t : this.map) {
-      add(newMap,t);
+    for(int i = 0; i < this.map.length; i++) {
+      if(this.map[i] != null) {
+        add(newMap,this.map[i]);
+      }
     }
 
     this.map = newMap;
