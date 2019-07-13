@@ -32,7 +32,8 @@ public class UAInvertedIndex {
   */
 
   static final int STR_LEN = 8;
-  static final int DOCID_LEN = 6;
+  static final int DOCID_LEN = 5;
+  static final int RTFIDF_LEN = 8; //0.029304
   static final int DOC_LEN = 25;
 
   static GlobalMap gh;
@@ -147,7 +148,7 @@ public class UAInvertedIndex {
 
       } // If a term hasn't been found in prior documents.
 
-      bw.write( String.format( "%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-8f\n", formatString( entry.getKey(), STR_LEN ) , docID, ((double)entry.getValue()/totalFreq) ) ); // f.write( t, documentID, (tf / totalFrequency) )
+      bw.write( formatString( entry.getKey(), STR_LEN, docID, ((float)entry.getValue()/totalFreq) ) + "\n" ); // f.write( t, documentID, (tf / totalFrequency) )
 
     }  // For all term t in document hash table ht, do this.
 
@@ -199,7 +200,7 @@ public class UAInvertedIndex {
                 topInd = b;
               } else {
                 if( read.substring(0,STR_LEN).compareTo(top.substring(0,STR_LEN)) == 0 ) {
-                  if( Integer.parseInt(read.substring(STR_LEN,STR_LEN+DOCID_LEN).trim()) < Integer.parseInt(top.substring(STR_LEN,STR_LEN+DOCID_LEN).trim()) ) {
+                  if( Integer.parseInt(read.substring(STR_LEN+1,STR_LEN+1 + DOCID_LEN).trim()) < Integer.parseInt(top.substring(STR_LEN+1,STR_LEN+1 + DOCID_LEN).trim()) ) {
                     br[topInd].reset();
                     top = read;
                     topInd = b;
@@ -218,16 +219,16 @@ public class UAInvertedIndex {
           }
         } // find token that is alphabetically first in the buffer.
 
-        //System.out.println(top+" ["+top.substring(0,STR_LEN).trim()+"]");
+        //System.out.println(top);
 
         t = gh.get( top.substring(0,STR_LEN).trim() );
         t.setStart(recordCount);  // Update the start field for the token in the global hash table.
         //gh.put( t );
 
-        rtfIDF = (float) ( Double.parseDouble( top.substring( STR_LEN+DOCID_LEN, top.length() ) )
+        rtfIDF = (float) ( Double.parseDouble( top.substring( (STR_LEN+1 + DOCID_LEN), top.length() ) )
                * Math.log( (double) size / t.getCount() ) ); // Calculate inverse document frequency for term from gh(t).numberOfDocuments .
 
-        post.writeInt(Integer.parseInt(top.substring(STR_LEN,STR_LEN+DOCID_LEN).trim())); // Write postings record for the token (documentID, termFrequency, OR rtf * idf) .
+        post.writeInt(Integer.parseInt(top.substring(STR_LEN+1,STR_LEN+1 + DOCID_LEN).trim())); // Write postings record for the token (documentID, termFrequency, OR rtf * idf) .
         post.writeFloat(rtfIDF);
 
         recordCount = recordCount + 1;
@@ -263,7 +264,7 @@ public class UAInvertedIndex {
         ct = gh.map[i].getCount();
         st = gh.map[i].getStart();
       } else {
-        term = "NA";
+        term = "END";
         id = -1;
         ct = -1;
         st = -1;
@@ -271,14 +272,10 @@ public class UAInvertedIndex {
 
       term = new String(term.getBytes(), Charset.forName("UTF-8"));
 
-      dict.writeUTF( formatString( term, STR_LEN ) );
+      dict.writeUTF( formatString( term, STR_LEN, ct, st ) );
       //dict.writeInt( id );
-      dict.writeInt( ct );
-      dict.writeInt( st );
-    }
-
-    for(TermData t : gh.map) {
-
+      //dict.writeInt( ct );
+      //dict.writeInt( st );
     }
 
     dict.close();
@@ -288,8 +285,22 @@ public class UAInvertedIndex {
     if(str.length() > limit) {
       str = str.substring(0,limit);
     }
-
     return String.format("%-"+limit+"s",str);
+  }
+
+  public static String formatString(String str, int limit, int id, float rtfIDF) {
+    if(str.length() > limit) {
+      str = str.substring(0,limit);
+    }
+    return String.format("%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-"+(RTFIDF_LEN/2)+"."+(RTFIDF_LEN/2)+"f",str,id,rtfIDF);
+  }
+
+  public static String formatString(String str, int limit, int count, int start) {
+    if(str.length() > limit) {
+      str = str.substring(0,limit);
+    }
+
+    return String.format("%-"+STR_LEN+"s %0"+8+"d %0"+8+"d",str,count,start);
   }
 
   static class TermComparator implements Comparator<String> {
@@ -371,7 +382,7 @@ public class UAInvertedIndex {
         s1 = L.readLine();
       } else {
         if( s1.substring(0,STR_LEN).compareTo(s2.substring(0,STR_LEN)) == 0 ) {
-          if( Integer.parseInt(s1.substring(STR_LEN,STR_LEN+DOCID_LEN).trim()) < Integer.parseInt(s2.substring(STR_LEN,STR_LEN+DOCID_LEN).trim()) ) {
+          if( Integer.parseInt(s1.substring(STR_LEN+1,STR_LEN+1 + DOCID_LEN).trim()) < Integer.parseInt(s2.substring(STR_LEN+1, STR_LEN+1 + DOCID_LEN).trim()) ) {
             bw.write(s1+"\n");
             s1 = L.readLine();
           } else {

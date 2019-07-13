@@ -7,12 +7,13 @@ import java.util.Comparator;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+import java.nio.charset.*;
 
 public class UAQuery {
 
   static boolean debug = true;
 
-  static final int DICT_LEN = 8+4+4;
+  static final int DICT_LEN = 8+8+8+2;
   static final int POST_LEN = 4+4;
   static final int DOC_LEN = 25;
   static int seed;
@@ -111,16 +112,26 @@ public class UAQuery {
     int docID;
     int i;
 
+    String[] spl;
+
     for(int a = 1; a < query.length; a++) {
       i = 0;
 
       do {
-        dict.seek(hash(query[a],i) * (DICT_LEN+2));
-        record = dict.readUTF();
-        i++;
-      } while(record.trim().compareTo("NA") != 0 && record.trim().compareTo(query[a]) != 0); // Find the term in the dictionary.
+        dict.seek( hash(query[a],i) * (DICT_LEN+2) );
 
-      if(record.trim().compareTo("NA") != 0) {
+        record = dict.readUTF();
+        spl = record.split("\\s+");
+
+        spl[0] = spl[0].trim();
+
+        System.out.println(record);
+        System.out.println();
+
+        i++;
+      } while(spl[0].compareToIgnoreCase("END") != 0 && spl[0].compareToIgnoreCase(query[a]) != 0); // Find the term in the dictionary.
+
+      if(spl[0].trim().compareTo("END") != 0) {
         if(!termMap.containsKey(query[a])) {
           termMap.put(query[a],row);
           row++;
@@ -130,8 +141,10 @@ public class UAQuery {
           q.add(query[a]);
         } // Add terms in query to HashSet.
 
-        count = dict.readInt();
-        start = dict.readInt();
+        //count = dict.readInt();
+        //start = dict.readInt();
+        count = Integer.parseInt(spl[1]);
+        start = Integer.parseInt(spl[2]);
 
         post.seek(((start-count)+1) * POST_LEN);
         for(int x = 0; x < count; x++) {
@@ -185,30 +198,44 @@ public class UAQuery {
     int docID;
     int i;
 
-    for( Map.Entry<String,Integer> entry : termMap.entrySet()) {
+    String[] spl;
+
+    for( Map.Entry<String,Integer> entry : termMap.entrySet() ) {
       i = 0;
       do {
+
         dict.seek( hash( entry.getKey() , i ) * (DICT_LEN+2) );
+
         record = dict.readUTF();
+        spl = record.split("\\s+");
+
+        spl[0] = spl[0].trim();
+
         i++;
-      } while(record.trim().compareTo( entry.getKey() ) != 0); // Find the term in the dictionary.
+      } while( spl[0].compareTo("END") != 0 && spl[0].compareTo(entry.getKey()) != 0 ); // Find the term in the dictionary.
 
-      count = dict.readInt();
-      start = dict.readInt();
+      if( spl[0].compareTo("END") != 0 ) {
 
-      if( query.contains( entry.getKey() ) ) {
-        tdm[ entry.getValue() ][ 0 ] = count; // Need to determine the correct value, ie: TF-IDF.
+        //count = dict.readInt();
+        //start = dict.readInt();
+        count = Integer.parseInt(spl[1]);
+        start = Integer.parseInt(spl[2]);
+
+        if( query.contains( entry.getKey() ) ) {
+          tdm[ entry.getValue() ][ 0 ] = count; // Need to determine the correct value, ie: TF-IDF.
+        }
+
+        post.seek(((start-count)+1) * POST_LEN);
+        for(int x = 0; x < count; x++) {
+          docID = post.readInt();
+          rtfIDF = post.readFloat();
+
+          if(docMap.containsKey(docID)) {
+            tdm[ entry.getValue() ][ docMap.get(docID) ] = rtfIDF;
+          }
+        } // Read each posting for the term.
       }
 
-      post.seek(((start-count)+1) * POST_LEN);
-      for(int x = 0; x < count; x++) {
-        docID = post.readInt();
-        rtfIDF = post.readFloat();
-
-        if(docMap.containsKey(docID)) {
-          tdm[ entry.getValue() ][ docMap.get(docID) ] = rtfIDF;
-        }
-      } // Read each posting for the term.
     }
 
     dict.close();
