@@ -55,6 +55,7 @@ public class UAInvertedIndex {
       buildInvertedIndex(inDir,outDir);
 
       RandomAccessFile stat = new RandomAccessFile(outDir.getPath()+"/stats.raf","rw");
+      stat.seek(0);
       stat.writeInt(gh.map.length);
       stat.close();
 
@@ -87,6 +88,7 @@ public class UAInvertedIndex {
 
     try {
       RandomAccessFile map = new RandomAccessFile(outDir.getPath()+"/map.raf","rw");
+      map.seek(0);
 
       for(File d : inDir.listFiles()) {
         br = new BufferedReader(new InputStreamReader(new FileInputStream(d), "UTF8"));
@@ -174,6 +176,7 @@ public class UAInvertedIndex {
       }
 
       RandomAccessFile post = new RandomAccessFile(outDir.getPath()+"/post.raf","rw"); // Create & open a new file for postings, post.raf .
+      post.seek(0);
 
       while(nullCount < br.length) {
         nullCount = 0;
@@ -219,7 +222,7 @@ public class UAInvertedIndex {
           }
         } // find token that is alphabetically first in the buffer.
 
-        //System.out.println(top);
+        //System.out.println(top.substring(0,STR_LEN).trim());
 
         t = gh.get( top.substring(0,STR_LEN).trim() );
         t.setStart(recordCount);  // Update the start field for the token in the global hash table.
@@ -252,6 +255,8 @@ public class UAInvertedIndex {
     System.out.println("writing dictionary file.");
 
     RandomAccessFile dict = new RandomAccessFile(outDir.getPath()+"/dict.raf","rw"); //write global hash table to disk as dictionary file dict.raf
+    dict.seek(0);
+
     String term;
     int id;
     int ct;

@@ -25,17 +25,24 @@ public class UAQuery {
   @return A hashcode for a given String.
   */
 
-  public static int hash(String str, int i) {
-    return ( Math.abs(str.hashCode()) + i ) % seed;
-  }
+  public static int hash(String str, int i, int n) {
+    return Math.abs(( str.hashCode() + i ) % n);
+  } // h(k,i) = (h'(k) + i) mod m
 
   public static void main(String[] args) {
 
-    File rafDir = new File("output");
+    if(debug) {
+      String[] test = {"input","output","cat","video","youtube"};
+      args = test;
+    }
+
+    File inDir = new File(args[0]);
+    File rafDir = new File(args[1]);
 
     try {
       RandomAccessFile stat = new RandomAccessFile(rafDir.getPath()+"/stats.raf","rw");
       stat.seek(0);
+
       seed = stat.readInt();
       stat.close();
 
@@ -44,17 +51,7 @@ public class UAQuery {
       System.exit(1);
     }
 
-    if(debug) {
-
-      String[] test = {"output","cat","video","youtube"};
-      runQuery(new File(test[0]),test);
-
-    } else {
-
-      rafDir = new File(args[0]);
-      runQuery(rafDir, args);
-
-    }
+    runQuery(inDir,rafDir,args);
 
   }
 
@@ -64,7 +61,7 @@ public class UAQuery {
   @return A list of the top results for the given query.
   */
 
-  public static String[] runQuery(File rafDir, String[] query) {
+  public static String[] runQuery(File inDir, File rafDir, String[] query) {
     String[] result = null;
 
     try {
@@ -72,7 +69,7 @@ public class UAQuery {
       HashMap<String,Integer> termMap = new HashMap<>();
       HashSet<String> q = new HashSet<>();
 
-      mapRowsCols(rafDir,termMap,docMap,q,query);
+      mapRowsCols(inDir,rafDir,termMap,docMap,q,query);
       float[][] tdm = buildTDM(rafDir,termMap,docMap,q);
 
       //printTDM(tdm);
@@ -96,12 +93,17 @@ public class UAQuery {
   @param query A query as an array of words.
   */
 
-  public static void mapRowsCols(File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> q, String[] query) throws IOException {
+  public static void mapRowsCols(File inDir, File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> q, String[] query) throws IOException {
     System.out.println("mapping terms and documents to rows and columns.");
 
     RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","rw");
     RandomAccessFile post = new RandomAccessFile(rafDir.getPath()+"/post.raf","rw");
     RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","rw");
+
+    dict.seek(0);
+    post.seek(0);
+    map.seek(0);
+
     BufferedReader br;
     String read;
     String record;
@@ -114,19 +116,21 @@ public class UAQuery {
 
     String[] spl;
 
-    for(int a = 1; a < query.length; a++) {
+    for(int a = 2; a < query.length; a++) {
       i = 0;
 
+      query[a] = new String(query[a].getBytes(), Charset.forName("UTF-8"));
+
       do {
-        dict.seek( hash(query[a],i) * (DICT_LEN+2) );
+        dict.seek(0);
+        dict.seek( hash(query[a],i,seed) * (DICT_LEN + 2) );
 
         record = dict.readUTF();
         spl = record.split("\\s+");
 
-        spl[0] = spl[0].trim();
+        System.out.println(record+" END OF RECORD ");
 
-        System.out.println(record);
-        System.out.println();
+        spl[0] = spl[0].trim();
 
         i++;
       } while(spl[0].compareToIgnoreCase("END") != 0 && spl[0].compareToIgnoreCase(query[a]) != 0); // Find the term in the dictionary.
@@ -157,9 +161,13 @@ public class UAQuery {
           } // Map document ID to a column.
 
           map.seek(docID * (DOC_LEN + 2));
-          br = new BufferedReader(new FileReader("input/"+map.readUTF()));
+          String filename = map.readUTF();
+          br = new BufferedReader( new FileReader( inDir.getPath()+"/"+filename.trim() ) );
 
           while((read=br.readLine())!=null) {
+
+            read = new String(read.getBytes(), Charset.forName("UTF-8"));
+
             if(!termMap.containsKey(read)) {
               termMap.put(read,row);
               row++;
@@ -191,6 +199,9 @@ public class UAQuery {
 
     RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","rw");
     RandomAccessFile post = new RandomAccessFile(rafDir.getPath()+"/post.raf","rw");
+    dict.seek(0);
+    post.seek(0);
+
     String record;
     float rtfIDF;
     int count;
@@ -204,10 +215,13 @@ public class UAQuery {
       i = 0;
       do {
 
-        dict.seek( hash( entry.getKey() , i ) * (DICT_LEN+2) );
+        dict.seek(0);
+        dict.seek( hash(entry.getKey(),i,seed) * (DICT_LEN + 2) );
 
         record = dict.readUTF();
         spl = record.split("\\s+");
+
+        System.out.println(record+" END OF RECORD ");
 
         spl[0] = spl[0].trim();
 
@@ -255,6 +269,8 @@ public class UAQuery {
 
     PriorityQueue<Result> pq = new PriorityQueue<>(new ResultComparator());
     RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","rw");
+    map.seek(0);
+
     String[] res = new String[k];
 
     for( Map.Entry<Integer,Integer> entry : docMap.entrySet() ) {
