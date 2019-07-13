@@ -12,9 +12,7 @@ import java.nio.charset.*;
 */
 
 public class UAInvertedIndex {
-
-  static boolean test = true;
-
+  
   /*
   dict.raf
     8 bytes (string) <-- term
@@ -40,7 +38,7 @@ public class UAInvertedIndex {
   static int seed = 2000000;
 
   public static void main(String[] args) {
-    if(test && args.length < 1) {
+    if(args.length < 1) {
       seed = 90000;
       args = new String[2];
       args[0] = "./input";

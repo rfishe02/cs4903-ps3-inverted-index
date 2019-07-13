@@ -11,8 +11,6 @@ import java.nio.charset.*;
 
 public class UAQuery {
 
-  static boolean debug = true;
-
   static final int DICT_LEN = 8+8+8+2;
   static final int POST_LEN = 4+4;
   static final int DOC_LEN = 25;
@@ -31,7 +29,7 @@ public class UAQuery {
 
   public static void main(String[] args) {
 
-    if(debug) {
+    if(args.length < 1) {
       String[] test = {"input","output","cat","video","youtube"};
       args = test;
     }
