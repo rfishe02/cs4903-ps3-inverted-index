@@ -13,22 +13,6 @@ import java.nio.charset.*;
 
 public class UAInvertedIndex {
 
-  /*
-  dict.raf
-    8 bytes (string) <-- term
-    -- 4 bytes (int)    <-- termID
-    4 bytes (float)  <-- termFrequency / RTF
-    4 bytes (int)    <-- start
-
-  post.raf
-    4 bytes (int)   <-- documentID
-    4 bytes (float) <-- RTF*IDF
-
-  map.raf
-    -- 4 bytes (int)     --> docID
-    25 bytes (string) --> filename
-  */
-
   static final int STR_LEN = 8;
   static final int DOCID_LEN = 5;
   static final int RTFIDF_LEN = 8; //0.029304
@@ -268,7 +252,7 @@ public class UAInvertedIndex {
         st = gh.map[i].getStart();
       } else {
         term = "END";
-        id = -1;
+        //id = -1;
         ct = -1;
         st = -1;
       }
@@ -302,7 +286,6 @@ public class UAInvertedIndex {
     if(str.length() > limit) {
       str = str.substring(0,limit);
     }
-
     return String.format("%-"+STR_LEN+"s %0"+8+"d %0"+8+"d",str,count,start);
   }
 

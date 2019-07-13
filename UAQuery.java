@@ -24,7 +24,7 @@ public class UAQuery {
   */
 
   public static int hash(String str, int i, int n) {
-    return Math.abs(( str.hashCode() + i ) % n);
+    return ( Math.abs(str.hashCode()) + i ) % n;
   } // h(k,i) = (h'(k) + i) mod m
 
   public static void main(String[] args) {

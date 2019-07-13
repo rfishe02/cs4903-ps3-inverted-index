@@ -6,8 +6,8 @@ public class GlobalMap {
     this.map = new TermData[size];
   }
 
-  public int hash(String str, int i, int n) {
-    return Math.abs(( str.hashCode() + i ) % n);
+  public static int hash(String str, int i, int n) {
+    return ( Math.abs(str.hashCode()) + i ) % n;
   } // h(k,i) = (h'(k) + i) mod m
 
   public void put(TermData t) {
