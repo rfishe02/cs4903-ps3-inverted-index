@@ -12,7 +12,7 @@ import java.nio.charset.*;
 */
 
 public class UAInvertedIndex {
-  
+
   /*
   dict.raf
     8 bytes (string) <-- term
@@ -96,11 +96,11 @@ public class UAInvertedIndex {
 
         while((read = br.readLine())!=null) {
 
-          read = new String(read.getBytes(), Charset.forName("UTF-8"));
-
           if(read.length() > STR_LEN) {
             read = read.substring(0,STR_LEN);
           }
+
+          read = new String(read.getBytes(), Charset.forName("UTF-8"));
 
           if( ht.containsKey( read ) ) {
             ht.put( read, ht.get( read )+1);
