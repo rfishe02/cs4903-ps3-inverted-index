@@ -254,8 +254,6 @@ public class UAInvertedIndex {
         st = -1;
       }
 
-      //dict.writeBytes( formatString( term, STR_LEN, ct, st ) );
-
       dict.writeBytes( formatString(term,8) );
       //dict.writeInt( id );
       dict.writeInt( ct );
@@ -277,13 +275,6 @@ public class UAInvertedIndex {
       str = str.substring(0,limit);
     }
     return String.format("%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-"+(RTFIDF_LEN/2)+"."+(RTFIDF_LEN/2)+"f",str,id,rtfIDF);
-  }
-
-  public static String formatString(String str, int limit, int count, int start) {
-    if(str.length() > limit) {
-      str = str.substring(0,limit);
-    }
-    return String.format("%-"+STR_LEN+"s %0"+8+"d %0"+8+"d  ",str,count,start);
   }
 
   static class TermComparator implements Comparator<String> {

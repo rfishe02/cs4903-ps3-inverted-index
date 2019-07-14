@@ -116,18 +116,10 @@ public class UAQuery {
     int docID;
     int i;
 
-    //String[] spl;
-
     for(int a = 2; a < query.length; a++) {
       i = 0;
       do {
         dict.seek( hash(query[a],i,seed) * (DICT_LEN) );
-
-        /*
-        term = new byte[DICT_LEN];
-        dict.read(term);
-        record = new String(term);
-        spl = record.split("(\\s|\\p{Space}|\u0020)+");*/
 
         term = new byte[STR_LEN];
         dict.read(term);
@@ -136,11 +128,7 @@ public class UAQuery {
         i++;
       } while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(query[a]) != 0);
 
-      //while( i < seed && spl[0].trim().compareToIgnoreCase(NA) != 0 && spl[0].trim().compareToIgnoreCase(query[a]) != 0); // Find the term in the dictionary.
-
-      //if(spl[0].compareTo(NA) != 0)
-      if(record.trim().compareToIgnoreCase(NA) != 0)
-      {
+      if(record.trim().compareToIgnoreCase(NA) != 0) {
         if(!termMap.containsKey(query[a])) {
           termMap.put(query[a],row);
           row++;
@@ -152,8 +140,6 @@ public class UAQuery {
 
         count = dict.readInt();
         start = dict.readInt();
-        //count = Integer.parseInt(spl[1]);
-        //start = Integer.parseInt(spl[2]);
 
         post.seek(((start-count)+1) * POST_LEN);
         for(int x = 0; x < count; x++) {
@@ -213,19 +199,11 @@ public class UAQuery {
     int docID;
     int i;
 
-    //String[] spl;
-
     for( Map.Entry<String,Integer> entry : termMap.entrySet() ) {
       i = 0;
 
       do {
         dict.seek( hash(entry.getKey(),i,seed) * (DICT_LEN) );
-
-        /*
-        term = new byte[DICT_LEN];
-        dict.read(term);
-        record = new String(term);
-        spl = record.split("(\\s|\\p{Space}|\u0020)+");*/
 
         term = new byte[STR_LEN];
         dict.read(term);
@@ -233,17 +211,12 @@ public class UAQuery {
 
         i++;
       } while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(entry.getKey()) != 0);
-      //while( i < seed && spl[0].trim().compareToIgnoreCase(NA) != 0 && spl[0].trim().compareToIgnoreCase(entry.getKey()) != 0); // Find the term in the dictionary.
 
-      //if( spl[0].compareTo(NA) != 0 )
-      if(record.compareToIgnoreCase(NA) != 0)
-      {
+      if(record.compareToIgnoreCase(NA) != 0) {
 
         count = dict.readInt();
         start = dict.readInt();
-        //count = Integer.parseInt(spl[1]);
-        //start = Integer.parseInt(spl[2]);
-
+        
         if( query.contains( entry.getKey() ) ) {
           tdm[ entry.getValue() ][ 0 ] = count; // Need to determine the correct value, ie: TF-IDF.
         }
