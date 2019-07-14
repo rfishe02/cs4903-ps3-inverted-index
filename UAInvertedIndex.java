@@ -13,6 +13,7 @@ import java.nio.charset.*;
 
 public class UAInvertedIndex {
 
+  static final String NA = new String("NULL".getBytes(), Charset.forName("UTF-8"));
   static final int STR_LEN = 8;
   static final int DOCID_LEN = 5;
   static final int RTFIDF_LEN = 8; //0.029304
@@ -251,15 +252,14 @@ public class UAInvertedIndex {
         ct = gh.map[i].getCount();
         st = gh.map[i].getStart();
       } else {
-        term = "END";
+        term = NA;
         //id = -1;
         ct = -1;
         st = -1;
       }
 
-      term = new String(term.getBytes(), Charset.forName("UTF-8"));
-
-      dict.writeUTF( formatString( term, STR_LEN, ct, st ) );
+      term = new String(formatString( term, STR_LEN, ct, st ).getBytes(), Charset.forName("UTF-8"));
+      dict.writeBytes( term );
       //dict.writeInt( id );
       //dict.writeInt( ct );
       //dict.writeInt( st );
@@ -286,7 +286,7 @@ public class UAInvertedIndex {
     if(str.length() > limit) {
       str = str.substring(0,limit);
     }
-    return String.format("%-"+STR_LEN+"s %0"+8+"d %0"+8+"d",str,count,start);
+    return String.format("%-"+STR_LEN+"s %0"+8+"d %0"+8+"d  ",str,count,start);
   }
 
   static class TermComparator implements Comparator<String> {

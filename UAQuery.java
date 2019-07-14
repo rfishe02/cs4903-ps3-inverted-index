@@ -11,7 +11,8 @@ import java.nio.charset.*;
 
 public class UAQuery {
 
-  static final int DICT_LEN = 8+8+8+2;
+  static final String NA = new String("NULL".getBytes(), Charset.forName("UTF-8"));
+  static final int DICT_LEN = 8+8+8+4;
   static final int POST_LEN = 4+4;
   static final int DOC_LEN = 25;
   static int seed;
@@ -120,20 +121,23 @@ public class UAQuery {
       query[a] = new String(query[a].getBytes(), Charset.forName("UTF-8"));
 
       do {
-        dict.seek(0);
-        dict.seek( hash(query[a],i,seed) * (DICT_LEN + 2) );
+        dict.seek( hash(query[a],i,seed) * (DICT_LEN) );
 
-        record = dict.readUTF();
-        spl = record.split("\\s+");
+        byte[] test = new byte[DICT_LEN];
+        dict.read(test);
+        record = new String(test, Charset.forName("UTF-8"));
 
+        spl = record.split("(\\s|\\p{Space}|\u0020)+");
+
+        spl[0] = new String(spl[0].getBytes(), Charset.forName("UTF-8")).trim();
+
+        //System.out.println(" ["+spl[0]+"] ["+query[a]+"] "+"] ["+NA+"] "+spl[0].compareToIgnoreCase(query[a])+" "+spl[0].compareTo(NA));
         System.out.println(record+" END OF RECORD ");
 
-        spl[0] = spl[0].trim();
-
         i++;
-      } while(spl[0].compareToIgnoreCase("END") != 0 && spl[0].compareToIgnoreCase(query[a]) != 0); // Find the term in the dictionary.
+      } while( i < seed && spl[0].compareToIgnoreCase(NA) != 0 && spl[0].compareToIgnoreCase(query[a]) != 0); // Find the term in the dictionary.
 
-      if(spl[0].trim().compareTo("END") != 0) {
+      if(spl[0].compareTo(NA) != 0) {
         if(!termMap.containsKey(query[a])) {
           termMap.put(query[a],row);
           row++;
@@ -213,20 +217,23 @@ public class UAQuery {
       i = 0;
       do {
 
-        dict.seek(0);
-        dict.seek( hash(entry.getKey(),i,seed) * (DICT_LEN + 2) );
+        dict.seek( hash(entry.getKey(),i,seed) * (DICT_LEN) );
 
-        record = dict.readUTF();
-        spl = record.split("\\s+");
+        byte[] test = new byte[DICT_LEN];
+        dict.read(test);
+        record = new String(test, Charset.forName("UTF-8"));
 
+        spl = record.split("(\\s|\\p{Space}|\u0020)+");
+
+        spl[0] = new String(spl[0].getBytes(), Charset.forName("UTF-8")).trim();
+
+        //System.out.println(" ["+spl[0]+"] ["+entry.getKey()+"] "+spl[0].compareToIgnoreCase(entry.getKey()));
         System.out.println(record+" END OF RECORD ");
 
-        spl[0] = spl[0].trim();
-
         i++;
-      } while( spl[0].compareTo("END") != 0 && spl[0].compareTo(entry.getKey()) != 0 ); // Find the term in the dictionary.
+      } while( i < seed && spl[0].compareTo(NA) != 0 && spl[0].compareTo(entry.getKey()) != 0 ); // Find the term in the dictionary.
 
-      if( spl[0].compareTo("END") != 0 ) {
+      if( spl[0].compareTo(NA) != 0 ) {
 
         //count = dict.readInt();
         //start = dict.readInt();
