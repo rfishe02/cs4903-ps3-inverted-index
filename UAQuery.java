@@ -30,11 +30,10 @@ public class UAQuery {
   } // h(k,i) = (h'(k) + i) mod m
 
   public static void main(String[] args) {
-
     if(args.length < 1) {
-      String[] test = {"input","output","cat","video","youtube"};
+      String[] test = {"input","input","output","cat","video","youtube"};
       args = test;
-    }
+    }/*************************************************************************/
 
     File inDir = new File(args[0]);
     File outDir = new File(args[1]);
@@ -100,11 +99,6 @@ public class UAQuery {
     RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","rw");
     RandomAccessFile post = new RandomAccessFile(rafDir.getPath()+"/post.raf","rw");
     RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","rw");
-
-    dict.seek(0);
-    post.seek(0);
-    map.seek(0);
-
     BufferedReader br;
     String read;
     String record;
@@ -184,13 +178,9 @@ public class UAQuery {
   public static float[][] buildTDM(File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> query) throws IOException {
     System.out.println("building the term document matrix.");
 
-    float[][] tdm = new float[termMap.size()][docMap.size()+1]; // Add the query column.
-
     RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","rw");
     RandomAccessFile post = new RandomAccessFile(rafDir.getPath()+"/post.raf","rw");
-    dict.seek(0);
-    post.seek(0);
-
+    float[][] tdm = new float[termMap.size()][docMap.size()+1]; // Add the query column.
     String record;
     byte[] term;
     float rtfIDF;
@@ -201,7 +191,6 @@ public class UAQuery {
 
     for( Map.Entry<String,Integer> entry : termMap.entrySet() ) {
       i = 0;
-
       do {
         dict.seek( hash(entry.getKey(),i,seed) * (DICT_LEN) );
 
@@ -248,10 +237,9 @@ public class UAQuery {
   public static String[] getDocs(File rafDir, HashMap<Integer,Integer> docMap, float[][] tdm, int k)  throws IOException {
     System.out.println("finding relevant documents.");
 
-    PriorityQueue<Result> pq = new PriorityQueue<>(new ResultComparator());
     RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","rw");
     map.seek(0);
-
+    PriorityQueue<Result> pq = new PriorityQueue<>(new ResultComparator());
     String[] res = new String[k];
 
     for( Map.Entry<Integer,Integer> entry : docMap.entrySet() ) {
@@ -268,31 +256,6 @@ public class UAQuery {
 
     map.close();
     return res;
-  }
-
-  /** */
-
-  static class Result {
-    float score;
-    String name;
-
-    public Result(float score, String name) {
-      this.score = score;
-      this.name = name;
-    }
-  }
-
-  /** */
-
-  static class ResultComparator implements Comparator<Result> {
-    public int compare(Result s1, Result s2) {
-      if(s1.score > s2.score) {
-        return -1;
-      } else if(s1.score < s2.score) {
-        return 1;
-      } else {
-        return 0;        }
-    }
   }
 
   /**
@@ -326,6 +289,31 @@ public class UAQuery {
         System.out.printf("%-3.2f ",tdm[a][b]);
       }
       System.out.println();
+    }
+  }
+
+  /** */
+
+  static class Result {
+    float score;
+    String name;
+
+    public Result(float score, String name) {
+      this.score = score;
+      this.name = name;
+    }
+  }
+
+  /** */
+
+  static class ResultComparator implements Comparator<Result> {
+    public int compare(Result s1, Result s2) {
+      if(s1.score > s2.score) {
+        return -1;
+      } else if(s1.score < s2.score) {
+        return 1;
+      } else {
+        return 0;        }
     }
   }
 
