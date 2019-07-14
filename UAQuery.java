@@ -12,7 +12,7 @@ import java.nio.charset.*;
 public class UAQuery {
 
   static final String NA = "NULL";
-  static final int DICT_LEN = 8+4+4; //8+8+8+4;
+  static final int DICT_LEN = 8+4+4;
   static final int STR_LEN = 8;
   static final int POST_LEN = 4+4;
   static final int MAP_LEN = 25;
@@ -216,7 +216,7 @@ public class UAQuery {
 
         count = dict.readInt();
         start = dict.readInt();
-        
+
         if( query.contains( entry.getKey() ) ) {
           tdm[ entry.getValue() ][ 0 ] = count; // Need to determine the correct value, ie: TF-IDF.
         }
@@ -231,7 +231,6 @@ public class UAQuery {
           }
         } // Read each posting for the term.
       }
-
     }
 
     dict.close();
