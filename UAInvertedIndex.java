@@ -22,6 +22,20 @@ public class UAInvertedIndex {
   static GlobalMap gh;
   static int seed = 2000000;
 
+  public static String formatString(String str, int limit) {
+    if(str.length() > limit) {
+      str = str.substring(0,limit);
+    }
+    return String.format("%-"+limit+"s",str);
+  }
+
+  public static String formatString(String str, int limit, int id, float rtfIDF) {
+    if(str.length() > limit) {
+      str = str.substring(0,limit);
+    }
+    return String.format("%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-"+(RTFIDF_LEN/2)+"."+(RTFIDF_LEN/2)+"f",str,id,rtfIDF);
+  }
+
   public static void main(String[] args) {
     if(args.length < 1) {
       seed = 90000;
@@ -49,12 +63,10 @@ public class UAInvertedIndex {
   }
 
   public static void buildInvertedIndex(File inDir, File outDir) {
-
     int size = algoOne(inDir,outDir,new File("temp"));
 
     mergeSort(new File("temp"),size); // Consolidate the temporary files produced by the first algorithm.
     algoTwo(new File("tmp"),outDir,size);
-
   }
 
   public static int algoOne(File inDir, File outDir, File tmpDir) {
@@ -263,26 +275,6 @@ public class UAInvertedIndex {
     dict.close();
   }
 
-  public static String formatString(String str, int limit) {
-    if(str.length() > limit) {
-      str = str.substring(0,limit);
-    }
-    return String.format("%-"+limit+"s",str);
-  }
-
-  public static String formatString(String str, int limit, int id, float rtfIDF) {
-    if(str.length() > limit) {
-      str = str.substring(0,limit);
-    }
-    return String.format("%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-"+(RTFIDF_LEN/2)+"."+(RTFIDF_LEN/2)+"f",str,id,rtfIDF);
-  }
-
-  static class TermComparator implements Comparator<String> {
-    public int compare(String s1, String s2) {
-      return s1.compareToIgnoreCase(s2);
-    }
-  }
-
   /** Use an iterative merge sort to combine files. The basis for this sort is
       directly from the bottom up sort shown on Wikipedia. However, the merge
       portion is different from the example on the website. It doesn't iterate over
@@ -393,5 +385,13 @@ public class UAInvertedIndex {
     }
 
     A[p] = new File(filename); // Replace the file at A[p]. Future merges will use the newly merged file.
+  }
+
+  /** */
+
+  static class TermComparator implements Comparator<String> {
+    public int compare(String s1, String s2) {
+      return s1.compareToIgnoreCase(s2);
+    }
   }
 }
