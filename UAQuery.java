@@ -37,7 +37,8 @@ public class UAQuery {
     }
 
     File inDir = new File(args[0]);
-    File rafDir = new File(args[1]);
+    File outDir = new File(args[1]);
+    File rafDir = new File(args[2]);
 
     try {
       RandomAccessFile stat = new RandomAccessFile(rafDir.getPath()+"/stats.raf","rw");
@@ -51,7 +52,7 @@ public class UAQuery {
       System.exit(1);
     }
 
-    runQuery(inDir,rafDir,args);
+    runQuery(inDir,outDir,rafDir,args);
 
   }
 
@@ -61,7 +62,7 @@ public class UAQuery {
   @return A list of the top results for the given query.
   */
 
-  public static String[] runQuery(File inDir, File rafDir, String[] query) {
+  public static String[] runQuery(File inDir, File outDir, File rafDir, String[] query) {
     String[] result = null;
 
     try {
@@ -69,7 +70,7 @@ public class UAQuery {
       HashMap<String,Integer> termMap = new HashMap<>();
       HashSet<String> q = new HashSet<>();
 
-      mapRowsCols(inDir,rafDir,termMap,docMap,q,query);
+      mapRowsCols(inDir,outDir,rafDir,termMap,docMap,q,query);
       float[][] tdm = buildTDM(rafDir,termMap,docMap,q);
 
       //printTDM(tdm);
@@ -93,7 +94,7 @@ public class UAQuery {
   @param query A query as an array of words.
   */
 
-  public static void mapRowsCols(File inDir, File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> q, String[] query) throws IOException {
+  public static void mapRowsCols(File inDir, File outDir, File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> q, String[] query) throws IOException {
     System.out.println("mapping terms and documents to rows and columns.");
 
     RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","rw");
@@ -166,7 +167,7 @@ public class UAQuery {
 
           map.seek(docID * (MAP_LEN + 2));
           String filename = map.readUTF();
-          br = new BufferedReader(new InputStreamReader(new FileInputStream( inDir.getPath()+"/"+filename.trim() ), "UTF8"));
+          br = new BufferedReader(new InputStreamReader(new FileInputStream( outDir.getPath()+"/"+filename.trim() ), "UTF8"));
 
           while((read=br.readLine())!=null) {
 
