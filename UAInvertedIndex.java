@@ -13,11 +13,11 @@ import java.nio.charset.*;
 
 public class UAInvertedIndex {
 
-  static final String NA = new String("NULL".getBytes(), Charset.forName("UTF-8"));
+  static final String NA = "NULL";
   static final int STR_LEN = 8;
   static final int DOCID_LEN = 5;
   static final int RTFIDF_LEN = 8; //0.029304
-  static final int DOC_LEN = 25;
+  static final int MAP_LEN = 25;
 
   static GlobalMap gh;
   static int seed = 2000000;
@@ -46,7 +46,6 @@ public class UAInvertedIndex {
       ex.printStackTrace();
       System.exit(1);
     }
-
   }
 
   public static void buildInvertedIndex(File inDir, File outDir) {
@@ -85,8 +84,6 @@ public class UAInvertedIndex {
             read = read.substring(0,STR_LEN);
           }
 
-          read = new String(read.getBytes(), Charset.forName("UTF-8"));
-
           if( ht.containsKey( read ) ) {
             ht.put( read, ht.get( read )+1);
           } else {
@@ -94,12 +91,12 @@ public class UAInvertedIndex {
           }
           totalFreq++;
         }
+
         bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmpDir.getPath()+"/doc"+docID+".temp"), "UTF8")); // Open new temporary file f.
         termID = writeTempFile(bw, ht, docID, termID, totalFreq);
         bw.close();  // Close temp file f.
 
-        //map.writeInt(docID);
-        map.writeUTF( formatString(d.getName(),DOC_LEN) );
+        map.writeUTF( formatString(d.getName(),MAP_LEN) );
 
         docID++;
         br.close();
@@ -115,7 +112,6 @@ public class UAInvertedIndex {
   }
 
   public static int writeTempFile(BufferedWriter bw, SortedMap<String, Integer> ht, int docID, int termID, int totalFreq) throws IOException {
-
     String out;
     TermData t;
 
@@ -258,11 +254,12 @@ public class UAInvertedIndex {
         st = -1;
       }
 
-      term = new String(formatString( term, STR_LEN, ct, st ).getBytes(), Charset.forName("UTF-8"));
-      dict.writeBytes( term );
+      //dict.writeBytes( formatString( term, STR_LEN, ct, st ) );
+
+      dict.writeBytes( formatString(term,8) );
       //dict.writeInt( id );
-      //dict.writeInt( ct );
-      //dict.writeInt( st );
+      dict.writeInt( ct );
+      dict.writeInt( st );
     }
 
     dict.close();
