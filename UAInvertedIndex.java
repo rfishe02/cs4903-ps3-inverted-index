@@ -20,7 +20,7 @@ public class UAInvertedIndex {
   static final int MAP_LEN = 25;
 
   static GlobalMap gh;
-  static int seed = 2000000;
+  static int seed = 90000;
 
   public static String formatString(String str, int limit) {
     if(str.length() > limit) {
@@ -266,7 +266,7 @@ public class UAInvertedIndex {
         st = -1;
       }
 
-      dict.writeUTF( formatString(term,STR_LEN,ct,st) );
+      dict.writeUTF( formatXString(term,STR_LEN,ct,st) );
 
       /*dict.writeBytes( formatString(term,STR_LEN) );
       dict.writeInt( ct );
@@ -278,11 +278,11 @@ public class UAInvertedIndex {
     dict.close();
   }
 
-  public static String formatString(String str, int limit, int count, int start) {
+  public static String formatXString(String str, int limit, int count, int start) {
     if(str.length() > limit) {
       str = str.substring(0,limit);
     }
-    return String.format("%-"+STR_LEN+"s %0"+8+"d %0"+8+"d  ",str,count,start);
+    return String.format("  %-"+STR_LEN+"s %0"+8+"d %0"+8+"d  ",str,count,start);
   }
 
   /** Use an iterative merge sort to combine files. The basis for this sort is

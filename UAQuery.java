@@ -12,7 +12,7 @@ import java.nio.charset.*;
 public class UAQuery {
 
   static final String NA = "NULL";
-  static final int DICT_LEN = 8+8+8+4;
+  static final int DICT_LEN = 8+8+8+6;
   //static final int STR_LEN = 8;
   static final int POST_LEN = 4+4;
   static final int MAP_LEN = 25;
@@ -31,7 +31,7 @@ public class UAQuery {
 
   public static void main(String[] args) {
     if(args.length < 1) {
-      String[] test = {"input","input","output2","cat","video","youtube"};
+      String[] test = {"input","input","output","cat","video","youtube"};
       args = test;
     }/*************************************************************************/
 
@@ -99,6 +99,7 @@ public class UAQuery {
     RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","rw");
     RandomAccessFile post = new RandomAccessFile(rafDir.getPath()+"/post.raf","rw");
     RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","rw");
+
     BufferedReader br;
     String read;
     String record;
@@ -113,6 +114,7 @@ public class UAQuery {
     String[] spl;
 
     for(int a = 2; a < query.length; a++) {
+
       i = 0;  // Find the term in the dictionary.
       do {
         dict.seek( hash(query[a],i,seed) * (DICT_LEN + 2) );
@@ -126,11 +128,11 @@ public class UAQuery {
         record = new String(term);*/
 
         i++;
-      } while( i < seed && spl[0].trim().compareToIgnoreCase(NA) != 0 && spl[0].trim().compareToIgnoreCase(query[a]) != 0);
+      } while( i < seed && spl[1].trim().compareToIgnoreCase(NA) != 0 && spl[1].trim().compareToIgnoreCase(query[a]) != 0);
       //while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(query[a]) != 0);
 
       //if(record.trim().compareToIgnoreCase(NA) != 0)
-      if( spl[0].trim().compareTo(NA) != 0 ) {
+      if( spl[1].trim().compareTo(NA) != 0 ) {
         if(!termMap.containsKey(query[a])) {
           termMap.put(query[a],row);
           row++;
@@ -140,8 +142,8 @@ public class UAQuery {
           q.add(query[a]);
         } // Add terms in query to HashSet.
 
-        count = Integer.parseInt(spl[1]);
-        start = Integer.parseInt(spl[2]);
+        count = Integer.parseInt(spl[2]);
+        start = Integer.parseInt(spl[3]);
 
         /*count = dict.readInt();
         start = dict.readInt();*/
@@ -215,15 +217,17 @@ public class UAQuery {
         dict.read(term);
         record = new String(term);*/
 
+        System.out.println(record+" END OF RECORD");
+
         i++;
-      } while( i < seed && spl[0].trim().compareToIgnoreCase(NA) != 0 && spl[0].trim().compareToIgnoreCase(entry.getKey()) != 0);
+      } while( i < seed && spl[1].trim().compareToIgnoreCase(NA) != 0 && spl[1].trim().compareToIgnoreCase(entry.getKey()) != 0);
       //while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(entry.getKey()) != 0);
 
       // if(record.trim().compareToIgnoreCase(NA) != 0)
-      if( spl[0].trim().compareTo(NA) != 0 ) {
+      if( spl[1].trim().compareTo(NA) != 0 ) {
 
-        count = Integer.parseInt(spl[1]);
-        start = Integer.parseInt(spl[2]);
+        count = Integer.parseInt(spl[2]);
+        start = Integer.parseInt(spl[3]);
 
         /*
         count = dict.readInt();
