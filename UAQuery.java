@@ -12,8 +12,8 @@ import java.nio.charset.*;
 public class UAQuery {
 
   static final String NA = "NULL";
-  static final int DICT_LEN = 8+4+4;
-  static final int STR_LEN = 8;
+  static final int DICT_LEN = 8+8+8+4;
+  //static final int STR_LEN = 8;
   static final int POST_LEN = 4+4;
   static final int MAP_LEN = 25;
   static int seed;
@@ -31,7 +31,7 @@ public class UAQuery {
 
   public static void main(String[] args) {
     if(args.length < 1) {
-      String[] test = {"input","input","output","cat","video","youtube"};
+      String[] test = {"input","input","output2","cat","video","youtube"};
       args = test;
     }/*************************************************************************/
 
@@ -110,19 +110,27 @@ public class UAQuery {
     int docID;
     int i;
 
-    for(int a = 2; a < query.length; a++) {
-      i = 0;
-      do {
-        dict.seek( hash(query[a],i,seed) * (DICT_LEN) );
+    String[] spl;
 
+    for(int a = 2; a < query.length; a++) {
+      i = 0;  // Find the term in the dictionary.
+      do {
+        dict.seek( hash(query[a],i,seed) * (DICT_LEN + 2) );
+
+        record = dict.readUTF();
+        spl = record.split("(\\s|\\p{Space}|\u0020)+");
+
+        /*
         term = new byte[STR_LEN];
         dict.read(term);
-        record = new String(term);
+        record = new String(term);*/
 
         i++;
-      } while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(query[a]) != 0);
+      } while( i < seed && spl[0].trim().compareToIgnoreCase(NA) != 0 && spl[0].trim().compareToIgnoreCase(query[a]) != 0);
+      //while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(query[a]) != 0);
 
-      if(record.trim().compareToIgnoreCase(NA) != 0) {
+      //if(record.trim().compareToIgnoreCase(NA) != 0)
+      if( spl[0].trim().compareTo(NA) != 0 ) {
         if(!termMap.containsKey(query[a])) {
           termMap.put(query[a],row);
           row++;
@@ -132,8 +140,11 @@ public class UAQuery {
           q.add(query[a]);
         } // Add terms in query to HashSet.
 
-        count = dict.readInt();
-        start = dict.readInt();
+        count = Integer.parseInt(spl[1]);
+        start = Integer.parseInt(spl[2]);
+
+        /*count = dict.readInt();
+        start = dict.readInt();*/
 
         post.seek(((start-count)+1) * POST_LEN);
         for(int x = 0; x < count; x++) {
@@ -189,22 +200,34 @@ public class UAQuery {
     int docID;
     int i;
 
+    String[] spl;
+
     for( Map.Entry<String,Integer> entry : termMap.entrySet() ) {
       i = 0;
       do {
-        dict.seek( hash(entry.getKey(),i,seed) * (DICT_LEN) );
+        dict.seek( hash(entry.getKey(),i,seed) * (DICT_LEN + 2) );
 
+        record = dict.readUTF();
+        spl = record.split("(\\s|\\p{Space}|\u0020)+");
+
+        /*
         term = new byte[STR_LEN];
         dict.read(term);
-        record = new String(term);
+        record = new String(term);*/
 
         i++;
-      } while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(entry.getKey()) != 0);
+      } while( i < seed && spl[0].trim().compareToIgnoreCase(NA) != 0 && spl[0].trim().compareToIgnoreCase(entry.getKey()) != 0);
+      //while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(entry.getKey()) != 0);
 
-      if(record.compareToIgnoreCase(NA) != 0) {
+      // if(record.trim().compareToIgnoreCase(NA) != 0)
+      if( spl[0].trim().compareTo(NA) != 0 ) {
 
+        count = Integer.parseInt(spl[1]);
+        start = Integer.parseInt(spl[2]);
+
+        /*
         count = dict.readInt();
-        start = dict.readInt();
+        start = dict.readInt();*/
 
         if( query.contains( entry.getKey() ) ) {
           tdm[ entry.getValue() ][ 0 ] = count; // Need to determine the correct value, ie: TF-IDF.
