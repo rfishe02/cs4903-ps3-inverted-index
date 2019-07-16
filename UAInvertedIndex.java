@@ -389,7 +389,7 @@ public class UAInvertedIndex {
     int len = Math.min(str.length(),limit);
     for(int i = 0; i < len; i++) {
       if((int)str.charAt(i) > 127) {
-        out += "&";
+        out += "?";
       } else {
         out += str.charAt(i);
       }

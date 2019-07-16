@@ -20,7 +20,7 @@ public class UAQuery {
 
   public static void main(String[] args) {
     if(args.length < 1) {
-      String[] test = {"input2","input2","output","cat","video","youtube"};
+      String[] test = {"input2","input2","output","Can't","e-mail","dogs"};
       args = test;
     }/*************************************************************************/
 
@@ -317,12 +317,21 @@ public class UAQuery {
 
   public static String convertText(String str, int limit) {
     String out = "";
-    int len = Math.min(str.length(),limit);
-    for(int i = 0; i < len; i++) {
-      if((int)str.charAt(i) > 127) {
-        out += "&";
-      } else {
-        out += str.charAt(i);
+    int len;
+
+    String[] spl = str.split("([\\s-&])+");
+    for(String s : spl) {
+      len = Math.min(s.length(),limit);
+
+      for(int i = 0; i < len; i++) {
+        if((int)s.charAt(i) > 127) {
+          out += "?";
+        } else if ( (int)s.charAt(i) > 47 && (int)s.charAt(i) < 58 ||
+          (int)s.charAt(i) > 96 && (int)s.charAt(i) < 123 ) {
+          out += s.charAt(i);
+        } else if( (int)s.charAt(i) > 64 && (int)s.charAt(i) < 91 ) {
+          out += (char)((int)s.charAt(i) + 32);
+        }
       }
     }
     return out;
