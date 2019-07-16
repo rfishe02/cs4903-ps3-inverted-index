@@ -20,27 +20,13 @@ public class UAInvertedIndex {
   static final int MAP_LEN = 25;
 
   static GlobalMap gh;
-  static int seed = 90000;
-
-  public static String formatString(String str, int limit) {
-    if(str.length() > limit) {
-      str = str.substring(0,limit);
-    }
-    return String.format("%-"+limit+"s",str);
-  }
-
-  public static String formatString(String str, int limit, int id, float rtfIDF) {
-    if(str.length() > limit) {
-      str = str.substring(0,limit);
-    }
-    return String.format("%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-"+(RTFIDF_LEN/2)+"."+(RTFIDF_LEN/2)+"f",str,id,rtfIDF);
-  }
+  static int seed = 2000000;
 
   public static void main(String[] args) {
     if(args.length < 1) {
       seed = 90000;
       args = new String[2];
-      args[0] = "./input";
+      args[0] = "./input2";
       args[1] = "./output";
     }/*************************************************************************/
 
@@ -62,9 +48,42 @@ public class UAInvertedIndex {
     }
   }
 
+  public static String convertText(String str, int limit) {
+    String out = "";
+    int len = Math.min(str.length(),limit);
+    for(int i = 0; i < len; i++) {
+      if((int)str.charAt(i) > 127) {
+        out += "&";
+      } else {
+        out += str.charAt(i);
+      }
+    }
+    return out;
+  }
+
+  public static String formatString(String str, int limit) {
+    if(str.length() > limit) {
+      str = str.substring(0,limit);
+    }
+    return String.format("%-"+limit+"s",str);
+  }
+
+  public static String formatString(String str, int limit, int id, double rtfIDF) {
+    if(str.length() > limit) {
+      str = str.substring(0,limit);
+    }
+    return String.format("%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-"+(RTFIDF_LEN/2)+"."+(RTFIDF_LEN/2)+"f",str,id,rtfIDF);
+  }
+
+  public static String formatXString(String str, int limit) {
+    if(str.length() > limit) {
+      str = str.substring(0,limit);
+    }
+    return String.format("%-"+limit+"s",str);
+  }
+
   public static void buildInvertedIndex(File inDir, File outDir) {
     int size = algoOne(inDir,outDir,new File("temp"));
-
     mergeSort(new File("temp"),size); // Consolidate the temporary files produced by the first algorithm.
     algoTwo(new File("tmp"),outDir,size);
   }
@@ -80,6 +99,8 @@ public class UAInvertedIndex {
     int termID = 0;
     int totalFreq;
 
+    String out;
+
     try {
       RandomAccessFile map = new RandomAccessFile(outDir.getPath()+"/map.raf","rw");
       map.seek(0);
@@ -92,9 +113,8 @@ public class UAInvertedIndex {
 
         while((read = br.readLine())!=null) {
 
-          if(read.length() > STR_LEN) {
-            read = read.substring(0,STR_LEN);
-          }
+          //read = new String(read.getBytes("US-ASCII"));
+          read = convertText(read,STR_LEN);
 
           if( ht.containsKey( read ) ) {
             ht.put( read, ht.get( read )+1);
@@ -102,6 +122,7 @@ public class UAInvertedIndex {
             ht.put( read, 1);
           }
           totalFreq++;
+
         }
 
         bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmpDir.getPath()+"/doc"+docID+".temp"), "UTF8")); // Open new temporary file f.
@@ -124,24 +145,25 @@ public class UAInvertedIndex {
   }
 
   public static int writeTempFile(BufferedWriter bw, SortedMap<String, Integer> ht, int docID, int termID, int totalFreq) throws IOException {
-    String out;
+    String word;
     TermData t;
 
     for(Map.Entry<String,Integer> entry : ht.entrySet()) {
+      word = entry.getKey();
 
-      if( ( t = gh.get( entry.getKey() ) ) != null ) {
+      if( ( t = gh.get( word ) ) != null ) {
         t.setCount(t.getCount() + 1);
         //gh.put(t);
 
       } else {
 
-        t = new TermData(entry.getKey(),termID,1); // put( t, <termID, # documents = 1> )
+        t = new TermData(word,termID,1); // put( t, <termID, # documents = 1> )
         gh.put(t);
         termID = termID + 1;
 
       } // If a term hasn't been found in prior documents.
 
-      bw.write( formatString( entry.getKey(), STR_LEN, docID, ((float)entry.getValue()/totalFreq) ) + "\n" ); // f.write( t, documentID, (tf / totalFrequency) )
+      bw.write( formatString( word, STR_LEN, docID, ((double)entry.getValue()/totalFreq) ) + "\n" ); // f.write( t, documentID, (tf / totalFrequency) )
 
     }  // For all term t in document hash table ht, do this.
 
@@ -222,7 +244,7 @@ public class UAInvertedIndex {
         rtfIDF = (float) ( Double.parseDouble( top.substring( (STR_LEN+1 + DOCID_LEN), top.length() ) )
                * Math.log( (double) size / t.getCount() ) ); // Calculate inverse document frequency for term from gh(t).numberOfDocuments .
 
-        post.writeInt(Integer.parseInt(top.substring(STR_LEN+1,STR_LEN+1 + DOCID_LEN).trim())); // Write postings record for the token (documentID, termFrequency, OR rtf * idf) .
+        post.writeInt( Integer.parseInt( top.substring(STR_LEN+1,STR_LEN+1 + DOCID_LEN).trim() ) ); // Write postings record for the token (documentID, termFrequency, OR rtf * idf) .
         post.writeFloat(rtfIDF);
 
         recordCount = recordCount + 1;
@@ -254,6 +276,7 @@ public class UAInvertedIndex {
     int st;
 
     for(int i = 0; i < gh.map.length; i++) {
+
       if(gh.map[i] != null) {
         term = gh.map[i].getT();
         //id = t.getID();
@@ -261,28 +284,19 @@ public class UAInvertedIndex {
         st = gh.map[i].getStart();
       } else {
         term = NA;
-        //id = -1;
-        ct = -1;
-        st = -1;
+        //id = 0;
+        ct = 0;
+        st = 0;
       }
 
-      dict.writeUTF( formatXString(term,STR_LEN,ct,st) );
-
-      /*dict.writeBytes( formatString(term,STR_LEN) );
+      dict.writeUTF( formatXString(term,STR_LEN) );
       dict.writeInt( ct );
-      dict.writeInt( st );*/
+      dict.writeInt( st );
       //dict.writeInt( id );
 
     }
 
     dict.close();
-  }
-
-  public static String formatXString(String str, int limit, int count, int start) {
-    if(str.length() > limit) {
-      str = str.substring(0,limit);
-    }
-    return String.format("  %-"+STR_LEN+"s %0"+8+"d %0"+8+"d  ",str,count,start);
   }
 
   /** Use an iterative merge sort to combine files. The basis for this sort is

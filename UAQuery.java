@@ -12,26 +12,15 @@ import java.nio.charset.*;
 public class UAQuery {
 
   static final String NA = "NULL";
-  static final int DICT_LEN = 8+8+8+6;
-  //static final int STR_LEN = 8;
+  static final int DICT_LEN = 8+4+4; // 8+8+8+6;
+  static final int STR_LEN = 8;
   static final int POST_LEN = 4+4;
   static final int MAP_LEN = 25;
   static int seed;
 
-  /**
-  The same hash function used to construct the global hash table.
-  @param str  A key.
-  @param i An index.
-  @return A hashcode for a given String.
-  */
-
-  public static int hash(String str, int i, int n) {
-    return ( Math.abs(str.hashCode()) + i ) % n;
-  } // h(k,i) = (h'(k) + i) mod m
-
   public static void main(String[] args) {
     if(args.length < 1) {
-      String[] test = {"input","input","output","cat","video","youtube"};
+      String[] test = {"input2","input2","output","cat","video","youtube"};
       args = test;
     }/*************************************************************************/
 
@@ -53,6 +42,30 @@ public class UAQuery {
 
     runQuery(inDir,outDir,rafDir,args);
 
+  }
+
+  /**
+  The same hash function used to construct the global hash table.
+  @param str  A key.
+  @param i An index.
+  @return A hashcode for a given String.
+  */
+
+  public static int hash(String str, int i, int n) {
+    return ( Math.abs(str.hashCode()) + i ) % (n-1);
+  } // h(k,i) = (h'(k) + i) mod m
+
+  public static String convertText(String str, int limit) {
+    String out = "";
+    int len = Math.min(str.length(),limit);
+    for(int i = 0; i < len; i++) {
+      if((int)str.charAt(i) > 127) {
+        out += "&";
+      } else {
+        out += str.charAt(i);
+      }
+    }
+    return out;
   }
 
   /**
@@ -103,7 +116,6 @@ public class UAQuery {
     BufferedReader br;
     String read;
     String record;
-    byte[] term;
     int row = 0;
     int col = 1; // Reserve first column for the query.
     int count;
@@ -111,28 +123,20 @@ public class UAQuery {
     int docID;
     int i;
 
-    String[] spl;
-
-    for(int a = 2; a < query.length; a++) {
+    for(int a = 3; a < query.length; a++) {
+      query[a] = convertText(query[a],STR_LEN);
 
       i = 0;  // Find the term in the dictionary.
       do {
         dict.seek( hash(query[a],i,seed) * (DICT_LEN + 2) );
-
         record = dict.readUTF();
-        spl = record.split("(\\s|\\p{Space}|\u0020)+");
 
-        /*
-        term = new byte[STR_LEN];
-        dict.read(term);
-        record = new String(term);*/
+        System.out.println(record+"END OF RECORD");
 
         i++;
-      } while( i < seed && spl[1].trim().compareToIgnoreCase(NA) != 0 && spl[1].trim().compareToIgnoreCase(query[a]) != 0);
-      //while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(query[a]) != 0);
+      } while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(query[a]) != 0);
 
-      //if(record.trim().compareToIgnoreCase(NA) != 0)
-      if( spl[1].trim().compareTo(NA) != 0 ) {
+      if(record.trim().compareToIgnoreCase(NA) != 0) {
         if(!termMap.containsKey(query[a])) {
           termMap.put(query[a],row);
           row++;
@@ -142,11 +146,8 @@ public class UAQuery {
           q.add(query[a]);
         } // Add terms in query to HashSet.
 
-        count = Integer.parseInt(spl[2]);
-        start = Integer.parseInt(spl[3]);
-
-        /*count = dict.readInt();
-        start = dict.readInt();*/
+        count = dict.readInt();
+        start = dict.readInt();
 
         post.seek(((start-count)+1) * POST_LEN);
         for(int x = 0; x < count; x++) {
@@ -159,17 +160,17 @@ public class UAQuery {
           } // Map document ID to a column.
 
           map.seek(docID * (MAP_LEN + 2));
-          String filename = map.readUTF();
-          br = new BufferedReader(new InputStreamReader(new FileInputStream( outDir.getPath()+"/"+filename.trim() ), "UTF8"));
+          br = new BufferedReader(new InputStreamReader(new FileInputStream( outDir.getPath()+"/"+map.readUTF().trim() ), "UTF8"));
 
           while((read=br.readLine())!=null) {
+            read = convertText(read,STR_LEN);
 
             if(!termMap.containsKey(read)) {
               termMap.put(read,row);
               row++;
             }
-          } // Open file & map terms within to columns.
 
+          } // Open file & map terms within to columns.
           br.close();
 
         } // Read each posting for the term.
@@ -195,43 +196,29 @@ public class UAQuery {
     RandomAccessFile post = new RandomAccessFile(rafDir.getPath()+"/post.raf","rw");
     float[][] tdm = new float[termMap.size()][docMap.size()+1]; // Add the query column.
     String record;
-    byte[] term;
     float rtfIDF;
     int count;
     int start;
     int docID;
     int i;
 
-    String[] spl;
+    //String[] spl;
 
     for( Map.Entry<String,Integer> entry : termMap.entrySet() ) {
       i = 0;
       do {
         dict.seek( hash(entry.getKey(),i,seed) * (DICT_LEN + 2) );
-
         record = dict.readUTF();
-        spl = record.split("(\\s|\\p{Space}|\u0020)+");
 
-        /*
-        term = new byte[STR_LEN];
-        dict.read(term);
-        record = new String(term);*/
-
-        System.out.println(record+" END OF RECORD");
+        System.out.println(record+"END OF RECORD");
 
         i++;
-      } while( i < seed && spl[1].trim().compareToIgnoreCase(NA) != 0 && spl[1].trim().compareToIgnoreCase(entry.getKey()) != 0);
-      //while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(entry.getKey()) != 0);
+      } while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(entry.getKey()) != 0);
 
-      // if(record.trim().compareToIgnoreCase(NA) != 0)
-      if( spl[1].trim().compareTo(NA) != 0 ) {
+      if(record.trim().compareToIgnoreCase(NA) != 0) {
 
-        count = Integer.parseInt(spl[2]);
-        start = Integer.parseInt(spl[3]);
-
-        /*
         count = dict.readInt();
-        start = dict.readInt();*/
+        start = dict.readInt();
 
         if( query.contains( entry.getKey() ) ) {
           tdm[ entry.getValue() ][ 0 ] = count; // Need to determine the correct value, ie: TF-IDF.

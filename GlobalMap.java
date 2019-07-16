@@ -7,7 +7,7 @@ public class GlobalMap {
   }
 
   public static int hash(String str, int i, int n) {
-    return ( Math.abs(str.hashCode()) + i ) % n;
+    return ( Math.abs(str.hashCode()) + i ) % (n-1);
   } // h(k,i) = (h'(k) + i) mod m
 
   public void put(TermData t) {
@@ -47,7 +47,7 @@ public class GlobalMap {
       h = hash(str,i,this.map.length);
 
       if(this.map[ h ] == null) {
-        break;
+        return null;
       } else {
         if(this.map[ h ].getT().compareToIgnoreCase(str) == 0) {
           return this.map[ h ];
