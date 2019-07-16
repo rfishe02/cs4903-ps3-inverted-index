@@ -44,9 +44,13 @@ public class UAQuery {
   }
 
   /**
-  The function used to process a query and return a list of results.
+  The main function used to process a query and return a list of results. It requires the input and output
+  directories from the companion class, UAInvertedIndex.
+  @param inDir An input directory of tokens.
+  @param outDir 
+  @param rafDar
   @param query A query as an array of words.
-  @return A list of the top results for the given query.
+  @return A list of the top k results for the given query.
   */
 
   public static String[] runQuery(File inDir, File outDir, File rafDir, String[] query) {
