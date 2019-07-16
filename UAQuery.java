@@ -41,31 +41,6 @@ public class UAQuery {
     }
 
     runQuery(inDir,outDir,rafDir,args);
-
-  }
-
-  /**
-  The same hash function used to construct the global hash table.
-  @param str  A key.
-  @param i An index.
-  @return A hashcode for a given String.
-  */
-
-  public static int hash(String str, int i, int n) {
-    return ( Math.abs(str.hashCode()) + i ) % (n-1);
-  } // h(k,i) = (h'(k) + i) mod m
-
-  public static String convertText(String str, int limit) {
-    String out = "";
-    int len = Math.min(str.length(),limit);
-    for(int i = 0; i < len; i++) {
-      if((int)str.charAt(i) > 127) {
-        out += "&";
-      } else {
-        out += str.charAt(i);
-      }
-    }
-    return out;
   }
 
   /**
@@ -235,7 +210,6 @@ public class UAQuery {
         } // Read each posting for the term.
       }
     }
-
     dict.close();
     post.close();
 
@@ -252,7 +226,6 @@ public class UAQuery {
     System.out.println("finding relevant documents.");
 
     RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","rw");
-    map.seek(0);
     PriorityQueue<Result> pq = new PriorityQueue<>(new ResultComparator());
     String[] res = new String[k];
 
@@ -329,6 +302,30 @@ public class UAQuery {
       } else {
         return 0;        }
     }
+  }
+
+  /**
+  The same hash function used to construct the global hash table.
+  @param str  A key.
+  @param i An index.
+  @return A hashcode for a given String.
+  */
+
+  public static int hash(String str, int i, int n) {
+    return ( Math.abs(str.hashCode()) + i ) % (n-1);
+  } // h(k,i) = (h'(k) + i) mod m
+
+  public static String convertText(String str, int limit) {
+    String out = "";
+    int len = Math.min(str.length(),limit);
+    for(int i = 0; i < len; i++) {
+      if((int)str.charAt(i) > 127) {
+        out += "&";
+      } else {
+        out += str.charAt(i);
+      }
+    }
+    return out;
   }
 
 }

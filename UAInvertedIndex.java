@@ -48,40 +48,6 @@ public class UAInvertedIndex {
     }
   }
 
-  public static String convertText(String str, int limit) {
-    String out = "";
-    int len = Math.min(str.length(),limit);
-    for(int i = 0; i < len; i++) {
-      if((int)str.charAt(i) > 127) {
-        out += "&";
-      } else {
-        out += str.charAt(i);
-      }
-    }
-    return out;
-  }
-
-  public static String formatString(String str, int limit) {
-    if(str.length() > limit) {
-      str = str.substring(0,limit);
-    }
-    return String.format("%-"+limit+"s",str);
-  }
-
-  public static String formatString(String str, int limit, int id, double rtfIDF) {
-    if(str.length() > limit) {
-      str = str.substring(0,limit);
-    }
-    return String.format("%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-"+(RTFIDF_LEN/2)+"."+(RTFIDF_LEN/2)+"f",str,id,rtfIDF);
-  }
-
-  public static String formatXString(String str, int limit) {
-    if(str.length() > limit) {
-      str = str.substring(0,limit);
-    }
-    return String.format("%-"+limit+"s",str);
-  }
-
   public static void buildInvertedIndex(File inDir, File outDir) {
     int size = algoOne(inDir,outDir,new File("temp"));
     mergeSort(new File("temp"),size); // Consolidate the temporary files produced by the first algorithm.
@@ -279,21 +245,20 @@ public class UAInvertedIndex {
 
       if(gh.map[i] != null) {
         term = gh.map[i].getT();
-        //id = t.getID();
         ct = gh.map[i].getCount();
         st = gh.map[i].getStart();
+        //id = t.getID();
       } else {
         term = NA;
-        //id = 0;
         ct = 0;
         st = 0;
+        //id = 0;
       }
 
       dict.writeUTF( formatXString(term,STR_LEN) );
       dict.writeInt( ct );
       dict.writeInt( st );
       //dict.writeInt( id );
-
     }
 
     dict.close();
@@ -418,4 +383,39 @@ public class UAInvertedIndex {
       return s1.compareToIgnoreCase(s2);
     }
   }
+
+  public static String convertText(String str, int limit) {
+    String out = "";
+    int len = Math.min(str.length(),limit);
+    for(int i = 0; i < len; i++) {
+      if((int)str.charAt(i) > 127) {
+        out += "&";
+      } else {
+        out += str.charAt(i);
+      }
+    }
+    return out;
+  }
+
+  public static String formatString(String str, int limit) {
+    if(str.length() > limit) {
+      str = str.substring(0,limit);
+    }
+    return String.format("%-"+limit+"s",str);
+  }
+
+  public static String formatString(String str, int limit, int id, double rtfIDF) {
+    if(str.length() > limit) {
+      str = str.substring(0,limit);
+    }
+    return String.format("%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-"+(RTFIDF_LEN/2)+"."+(RTFIDF_LEN/2)+"f",str,id,rtfIDF);
+  }
+
+  public static String formatXString(String str, int limit) {
+    if(str.length() > limit) {
+      str = str.substring(0,limit);
+    }
+    return String.format("%-"+limit+"s",str);
+  }
+
 }
