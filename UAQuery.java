@@ -115,7 +115,7 @@ public class UAQuery {
         dict.seek( hash(query[a],i,seed) * (DICT_LEN + 2) );
         record = dict.readUTF();
 
-        System.out.println(record+"END OF RECORD");
+        //System.out.println(record+"END OF RECORD");
 
         i++;
       } while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(query[a]) != 0);
@@ -194,7 +194,7 @@ public class UAQuery {
         dict.seek( hash(entry.getKey(),i,seed) * (DICT_LEN + 2) );
         record = dict.readUTF();
 
-        System.out.println(record+"END OF RECORD");
+        //System.out.println(record+"END OF RECORD");
 
         i++;
       } while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(entry.getKey()) != 0);
