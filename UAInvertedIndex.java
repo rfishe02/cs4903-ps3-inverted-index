@@ -172,6 +172,7 @@ public class UAInvertedIndex {
 
     try {
       File[] files = inDir.listFiles();
+
       BufferedReader[] br = new BufferedReader[files.length];
       for(int a = 0; a < files.length; a++) {
         br[a] = new BufferedReader(new InputStreamReader(new FileInputStream(files[a]), "UTF8"));
@@ -182,12 +183,13 @@ public class UAInvertedIndex {
 
       while(nullCount < br.length) {
         nullCount = 0;
-
         br[topInd].mark(100);
         top = br[topInd].readLine();
 
         for(int b = 0; b < br.length; b++) {
+
           if(b != topInd) {
+
             br[b].mark(100);
 
             if(top == null) {
@@ -223,6 +225,7 @@ public class UAInvertedIndex {
               br[b].mark(100);
               nullCount++;
             }
+
           }
         } // find token that is alphabetically first in the buffer.
 
