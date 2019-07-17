@@ -2,18 +2,16 @@
 public class TermData {
 
   private String term;
-  private int termID;
   private int docCount;
   private int start;
 
-  public TermData(String term, int termID, int docCount) {
+  public TermData(String term, int docCount) {
     this.term = term;
-    this.termID = termID;
     this.docCount = docCount;
   }
 
   public String toString() {
-    return term +" "+ termID +" "+ docCount+" "+start;
+    return term +" "+ docCount+" "+start;
   }
 
   public void setT(String term) {
@@ -22,14 +20,6 @@ public class TermData {
 
   public String getT() {
     return this.term;
-  }
-
-  public void setID(int termID) {
-    this.termID = termID;
-  }
-
-  public int getID() {
-    return this.termID;
   }
 
   public void setCount(int docCount) {

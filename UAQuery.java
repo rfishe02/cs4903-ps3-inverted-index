@@ -12,21 +12,20 @@ import java.nio.charset.*;
 public class UAQuery {
 
   static final String NA = "NULL";
-  static final int DICT_LEN = 8+4+4; // 8+8+8+6;
-  static final int STR_LEN = 8;
+  static final int DICT_LEN = 8+4+4;
   static final int POST_LEN = 4+4;
+  static final int STR_LEN = 8;
   static final int MAP_LEN = 25;
   static int seed;
 
   public static void main(String[] args) {
     if(args.length < 1) {
-      String[] test = {"input2","input2","output","Can't","e-mail","dogs"};
+      String[] test = {"input2","output","Can't","e-mail","dogs"};
       args = test;
     }/*************************************************************************/
 
     File inDir = new File(args[0]);
-    File outDir = new File(args[1]);
-    File rafDir = new File(args[2]);
+    File rafDir = new File(args[1]);
 
     try {
       RandomAccessFile stat = new RandomAccessFile(rafDir.getPath()+"/stats.raf","rw");
@@ -40,20 +39,19 @@ public class UAQuery {
       System.exit(1);
     }
 
-    runQuery(inDir,outDir,rafDir,args);
+    runQuery(inDir,rafDir,args);
   }
 
   /**
   The main function used to process a query and return a list of results. It requires the input and output
   directories from the companion class, UAInvertedIndex.
-  @param inDir An input directory of tokens.
-  @param outDir 
+  @param inDir An input directory of temporary files.
   @param rafDar
   @param query A query as an array of words.
   @return A list of the top k results for the given query.
   */
 
-  public static String[] runQuery(File inDir, File outDir, File rafDir, String[] query) {
+  public static String[] runQuery(File inDir, File rafDir, String[] query) {
     String[] result = null;
 
     try {
@@ -61,7 +59,7 @@ public class UAQuery {
       HashMap<String,Integer> termMap = new HashMap<>();
       HashSet<String> q = new HashSet<>();
 
-      mapRowsCols(inDir,outDir,rafDir,termMap,docMap,q,query);
+      mapRowsCols(inDir,rafDir,termMap,docMap,q,query);
       float[][] tdm = buildTDM(rafDir,termMap,docMap,q);
 
       //printTDM(tdm);
@@ -85,7 +83,7 @@ public class UAQuery {
   @param query A query as an array of words.
   */
 
-  public static void mapRowsCols(File inDir, File outDir, File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> q, String[] query) throws IOException {
+  public static void mapRowsCols(File inDir, File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> q, String[] query) throws IOException {
     System.out.println("mapping terms and documents to rows and columns.");
 
     RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","rw");
@@ -102,7 +100,7 @@ public class UAQuery {
     int docID;
     int i;
 
-    for(int a = 3; a < query.length; a++) {
+    for(int a = 2; a < query.length; a++) {
       query[a] = convertText(query[a],STR_LEN);
 
       i = 0;  // Find the term in the dictionary.
@@ -131,7 +129,7 @@ public class UAQuery {
         post.seek(((start-count)+1) * POST_LEN);
         for(int x = 0; x < count; x++) {
           docID = post.readInt();
-          post.readFloat(); // rtfIDF
+          post.readFloat(); // rtf
 
           if(!docMap.containsKey(docID)) {
             docMap.put(docID,col);
@@ -139,7 +137,7 @@ public class UAQuery {
           } // Map document ID to a column.
 
           map.seek(docID * (MAP_LEN + 2));
-          br = new BufferedReader(new InputStreamReader(new FileInputStream( outDir.getPath()+"/"+map.readUTF().trim() ), "UTF8"));
+          br = new BufferedReader(new InputStreamReader(new FileInputStream( inDir.getPath()+"/"+map.readUTF().trim() ), "UTF8"));
 
           while((read=br.readLine())!=null) {
             read = convertText(read,STR_LEN);
@@ -180,8 +178,6 @@ public class UAQuery {
     int start;
     int docID;
     int i;
-
-    //String[] spl;
 
     for( Map.Entry<String,Integer> entry : termMap.entrySet() ) {
       i = 0;
@@ -318,6 +314,8 @@ public class UAQuery {
   public static int hash(String str, int i, int n) {
     return ( Math.abs(str.hashCode()) + i ) % (n-1);
   } // h(k,i) = (h'(k) + i) mod m
+
+  /** */
 
   public static String convertText(String str, int limit) {
     String out = "";

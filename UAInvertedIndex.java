@@ -16,11 +16,12 @@ public class UAInvertedIndex {
   static final String NA = "NULL";
   static final int STR_LEN = 8;
   static final int DOCID_LEN = 5;
-  static final int RTFIDF_LEN = 8; //0.029304
   static final int MAP_LEN = 25;
 
   static GlobalMap gh;
   static int seed = 2000000;
+
+  static final int RTF_LEN = 8; //0.029304
 
   public static void main(String[] args) {
     if(args.length < 1) {
@@ -48,11 +49,22 @@ public class UAInvertedIndex {
     }
   }
 
+  /**
+  @param inDir
+  @param outDir
+  */
+
   public static void buildInvertedIndex(File inDir, File outDir) {
     int size = algoOne(inDir,outDir,new File("temp"));
     mergeSort(new File("temp"),size); // Consolidate the temporary files produced by the first algorithm.
     algoTwo(new File("tmp"),outDir,size);
   }
+
+  /**
+  @param inDir
+  @param outDir
+  @param tmpDir
+  */
 
   public static int algoOne(File inDir, File outDir, File tmpDir) {
     System.out.println("running first pass.");
@@ -62,7 +74,6 @@ public class UAInvertedIndex {
     BufferedWriter bw = null;
     String read;
     int docID = 0;
-    int termID = 0;
     int totalFreq;
 
     String out;
@@ -92,7 +103,7 @@ public class UAInvertedIndex {
         }
 
         bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmpDir.getPath()+"/doc"+docID+".temp"), "UTF8")); // Open new temporary file f.
-        termID = writeTempFile(bw, ht, docID, termID, totalFreq);
+        writeTempFile(bw, ht, docID, totalFreq);
         bw.close();  // Close temp file f.
 
         map.writeUTF( formatString(d.getName(),MAP_LEN) );
@@ -110,7 +121,15 @@ public class UAInvertedIndex {
     return docID;
   }
 
-  public static int writeTempFile(BufferedWriter bw, SortedMap<String, Integer> ht, int docID, int termID, int totalFreq) throws IOException {
+  /**
+  @param bw
+  @param ht
+  @param docID
+  @param termID
+  @param totalFreq
+  */
+
+  public static void writeTempFile(BufferedWriter bw, SortedMap<String, Integer> ht, int docID, int totalFreq) throws IOException {
     String word;
     TermData t;
 
@@ -123,9 +142,8 @@ public class UAInvertedIndex {
 
       } else {
 
-        t = new TermData(word,termID,1); // put( t, <termID, # documents = 1> )
+        t = new TermData(word,1); // put( t, <termID, # documents = 1> )
         gh.put(t);
-        termID = termID + 1;
 
       } // If a term hasn't been found in prior documents.
 
@@ -133,8 +151,13 @@ public class UAInvertedIndex {
 
     }  // For all term t in document hash table ht, do this.
 
-    return termID;
   }
+
+  /**
+  @param inDir
+  @param outDir
+  @param size
+  */
 
   public static void algoTwo(File inDir, File outDir, int size) {
     System.out.println("running second pass.");
@@ -230,6 +253,10 @@ public class UAInvertedIndex {
     }
   }
 
+  /**
+  @param outDir
+  */
+
   public static void writeDictionary(File outDir) throws IOException {
     System.out.println("writing dictionary file.");
 
@@ -268,6 +295,8 @@ public class UAInvertedIndex {
       directly from the bottom up sort shown on Wikipedia. However, the merge
       portion is different from the example on the website. It doesn't iterate over
       the array, it just uses the values p and q to combine files.
+      @param inDir
+      @param n
   */
 
   public static void mergeSort(File inDir, int n) {
@@ -316,6 +345,13 @@ public class UAInvertedIndex {
      p: 2  q: 3 --> merge the files at index two and three.
      p: 0  q: 2 --> merge the files at index zero and two.
      p: 0  q: 4 --> merge the files at index zero and four.
+     @param A
+     @param L
+     @param R
+     @param bw
+     @param p
+     @param q
+     @param r
   */
 
   public static void merge(File[] A, BufferedReader L, BufferedReader R, BufferedWriter bw, int p, int q, int r) throws IOException {
@@ -376,7 +412,10 @@ public class UAInvertedIndex {
     A[p] = new File(filename); // Replace the file at A[p]. Future merges will use the newly merged file.
   }
 
-  /** */
+  /**
+  @param s1
+  @param s2
+  */
 
   static class TermComparator implements Comparator<String> {
     public int compare(String s1, String s2) {
@@ -406,6 +445,11 @@ public class UAInvertedIndex {
     return out;
   }
 
+  /**
+  @param str
+  @param limit
+  */
+
   public static String formatString(String str, int limit) {
     if(str.length() > limit) {
       str = str.substring(0,limit);
@@ -413,12 +457,24 @@ public class UAInvertedIndex {
     return String.format("%-"+limit+"s",str);
   }
 
-  public static String formatString(String str, int limit, int id, double rtfIDF) {
+  /**
+  @param str
+  @param limit
+  @param id
+  @param rtf
+  */
+
+  public static String formatString(String str, int limit, int id, double rtf) {
     if(str.length() > limit) {
       str = str.substring(0,limit);
     }
-    return String.format("%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-"+(RTFIDF_LEN/2)+"."+(RTFIDF_LEN/2)+"f",str,id,rtfIDF);
+    return String.format("%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-"+(RTF_LEN/2)+"."+(RTF_LEN/2)+"f",str,id,rtf);
   }
+
+  /**
+  @param str
+  @param limit
+  */
 
   public static String formatXString(String str, int limit) {
     if(str.length() > limit) {
