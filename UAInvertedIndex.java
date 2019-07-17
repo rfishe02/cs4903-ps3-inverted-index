@@ -14,10 +14,9 @@ import java.nio.charset.*;
 public class UAInvertedIndex {
 
   static final String NA = "NULL";
-  static final int STR_LEN = 8;
   static final int DOCID_LEN = 5;
+  static final int STR_LEN = 8;
   static final int MAP_LEN = 25;
-
   static GlobalMap gh;
   static int seed = 2000000;
 
@@ -35,11 +34,17 @@ public class UAInvertedIndex {
       File inDir = new File(args[0]);
       File outDir = new File(args[1]);
 
-      gh = new GlobalMap(seed); // Initialize global hash table.
-      buildInvertedIndex(inDir,outDir);
-
       RandomAccessFile stat = new RandomAccessFile(outDir.getPath()+"/stats.raf","rw");
       stat.seek(0);
+      stat.writeUTF(NA);
+
+      gh = new GlobalMap(seed); // Initialize global hash table.
+      buildInvertedIndex(inDir,outDir,stat);
+
+      stat.writeInt( STR_LEN );
+      stat.writeInt( MAP_LEN );
+      stat.writeInt( 2 );
+      stat.writeInt( 2 );
       stat.writeInt(gh.map.length);
       stat.close();
 
@@ -54,10 +59,13 @@ public class UAInvertedIndex {
   @param outDir
   */
 
-  public static void buildInvertedIndex(File inDir, File outDir) {
+  public static void buildInvertedIndex(File inDir, File outDir, RandomAccessFile stat) throws IOException {
     int size = algoOne(inDir,outDir,new File("temp"));
     mergeSort(new File("temp"),size); // Consolidate the temporary files produced by the first algorithm.
     algoTwo(new File("tmp"),outDir,size);
+
+    stat.writeInt(size);
+
   }
 
   /**
@@ -236,11 +244,10 @@ public class UAInvertedIndex {
         //gh.put( t );
 
         rtf = (float) Double.parseDouble( top.substring( (STR_LEN+1 + DOCID_LEN), top.length() ) );
-        post.writeInt( Integer.parseInt( top.substring(STR_LEN+1,STR_LEN+1 + DOCID_LEN).trim() ) ); // Write postings record for the token (documentID, termFrequency, OR rtf * idf) .
-        post.writeFloat( rtf );
-
         idf = (float) Math.log( (double) size / t.getCount() ); // Calculate inverse document frequency for term from gh(t).numberOfDocuments .
-        t.setIDF(idf);
+
+        post.writeInt( Integer.parseInt( top.substring(STR_LEN+1,STR_LEN+1 + DOCID_LEN).trim() ) ); // Write postings record for the token (documentID, termFrequency, OR rtf * idf) .
+        post.writeFloat( rtf * idf );
 
         recordCount = recordCount + 1;
       } // While all postings haven't been written do this.
@@ -270,24 +277,24 @@ public class UAInvertedIndex {
     dict.seek(0);
 
     String term;
-    float idf;
-    int st;
+    int count;
+    int start;
 
     for(int i = 0; i < gh.map.length; i++) {
 
       if(gh.map[i] != null) {
         term = gh.map[i].getT();
-        idf = gh.map[i].getIDF();
-        st = gh.map[i].getStart();
+        count = gh.map[i].getCount();
+        start = gh.map[i].getStart();
       } else {
         term = NA;
-        idf = 0;
-        st = 0;
+        count = 0;
+        start = 0;
       }
 
       dict.writeUTF( formatXString(term,STR_LEN) );
-      dict.writeFloat( idf );
-      dict.writeInt( st );
+      dict.writeInt( count );
+      dict.writeInt( start );
     }
 
     dict.close();

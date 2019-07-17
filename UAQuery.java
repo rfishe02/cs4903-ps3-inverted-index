@@ -11,16 +11,17 @@ import java.nio.charset.*;
 
 public class UAQuery {
 
-  static final String NA = "NULL";
-  static final int DICT_LEN = 8+4+4;
-  static final int POST_LEN = 4+4;
-  static final int STR_LEN = 8;
-  static final int MAP_LEN = 25;
+  static String NA;
+  static int size;
+  static int STR_LEN;
+  static int MAP_LEN;
+  static int DICT_LEN;
+  static int POST_LEN;
   static int seed;
 
   public static void main(String[] args) {
     if(args.length < 1) {
-      String[] test = {"input2","output","Can't","e-mail","dogs"};
+      String[] test = {"input2","output","cat","pictures","videos"};
       args = test;
     }/*************************************************************************/
 
@@ -30,16 +31,22 @@ public class UAQuery {
     try {
       RandomAccessFile stat = new RandomAccessFile(rafDir.getPath()+"/stats.raf","rw");
       stat.seek(0);
-
+      NA = stat.readUTF();
+      size = stat.readInt();
+      STR_LEN = stat.readInt();
+      MAP_LEN = stat.readInt();
+      DICT_LEN = STR_LEN + (stat.readInt() * 4);
+      POST_LEN = stat.readInt() * 4;
       seed = stat.readInt();
       stat.close();
+
+      runQuery(inDir,rafDir,args);
 
     } catch(IOException ex) {
       ex.printStackTrace();
       System.exit(1);
     }
 
-    runQuery(inDir,rafDir,args);
   }
 
   /**
@@ -57,7 +64,7 @@ public class UAQuery {
     try {
       HashMap<Integer,Integer> docMap = new HashMap<>();
       HashMap<String,Integer> termMap = new HashMap<>();
-      HashSet<String> q = new HashSet<>();
+      HashMap<String,Integer> q = new HashMap<>();
 
       mapRowsCols(inDir,rafDir,termMap,docMap,q,query);
       float[][] tdm = buildTDM(rafDir,termMap,docMap,q);
@@ -83,7 +90,7 @@ public class UAQuery {
   @param query A query as an array of words.
   */
 
-  public static void mapRowsCols(File inDir, File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> q, String[] query) throws IOException {
+  public static void mapRowsCols(File inDir, File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashMap<String,Integer> q, String[] query) throws IOException {
     System.out.println("mapping terms and documents to rows and columns.");
 
     RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","rw");
@@ -119,9 +126,11 @@ public class UAQuery {
           row++;
         } // Map terms to rows.
 
-        if(!q.contains(query[a])) {
-          q.add(query[a]);
-        } // Add terms in query to HashSet.
+        if(q.containsKey(query[a])) {
+          q.put(query[a],q.get(query[a])+1);
+        } else {
+          q.put(query[a],1);
+        }  // Count the frequency of terms in the query.
 
         count = dict.readInt();
         start = dict.readInt();
@@ -166,13 +175,13 @@ public class UAQuery {
   @param query A hash set that will contain all distinct words in the query.
   */
 
-  public static float[][] buildTDM(File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashSet<String> query) throws IOException {
+  public static float[][] buildTDM(File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashMap<String,Integer> query) throws IOException {
     System.out.println("building the term document matrix.");
 
     RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","rw");
     RandomAccessFile post = new RandomAccessFile(rafDir.getPath()+"/post.raf","rw");
     float[][] tdm = new float[termMap.size()][docMap.size()+1]; // Add the query column.
-    String record;
+    String record = NA;
     float rtfIDF;
     int count;
     int start;
@@ -195,8 +204,8 @@ public class UAQuery {
         count = dict.readInt();
         start = dict.readInt();
 
-        if( query.contains( entry.getKey() ) ) {
-          tdm[ entry.getValue() ][ 0 ] = count; // Need to determine the correct value, ie: TF-IDF.
+        if( query.containsKey( entry.getKey() ) ) {
+          tdm[ entry.getValue() ][ 0 ] = (float) ( query.get( entry.getKey() ) * Math.log(size / count) ); // Need to determine the correct value, ie: TF-IDF.
         }
 
         post.seek(((start-count)+1) * POST_LEN);
@@ -208,6 +217,7 @@ public class UAQuery {
             tdm[ entry.getValue() ][ docMap.get(docID) ] = rtfIDF;
           }
         } // Read each posting for the term.
+
       }
     }
     dict.close();
