@@ -4,6 +4,7 @@ public class TermData {
   private String term;
   private int docCount;
   private int start;
+  private float idf;
 
   public TermData(String term, int docCount) {
     this.term = term;
@@ -36,6 +37,14 @@ public class TermData {
 
   public int getStart() {
     return start;
+  }
+
+  public void setIDF(float idf) {
+    this.idf = idf;
+  }
+
+  public float getIDF() {
+    return idf;
   }
 
 }

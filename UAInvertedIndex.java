@@ -125,7 +125,6 @@ public class UAInvertedIndex {
   @param bw
   @param ht
   @param docID
-  @param termID
   @param totalFreq
   */
 
@@ -168,7 +167,8 @@ public class UAInvertedIndex {
     int topInd = 0;
     int recordCount = 0;
     int nullCount = 0;
-    float rtfIDF;
+    float rtf;
+    float idf;
 
     try {
       File[] files = inDir.listFiles();
@@ -205,6 +205,7 @@ public class UAInvertedIndex {
                 topInd = b;
               } else {
                 if( read.substring(0,STR_LEN).compareTo(top.substring(0,STR_LEN)) == 0 ) {
+
                   if( Integer.parseInt(read.substring(STR_LEN+1,STR_LEN+1 + DOCID_LEN).trim()) < Integer.parseInt(top.substring(STR_LEN+1,STR_LEN+1 + DOCID_LEN).trim()) ) {
                     br[topInd].reset();
                     top = read;
@@ -212,6 +213,7 @@ public class UAInvertedIndex {
                   } else {
                     br[b].reset();
                   }
+
                 } else {
                   br[b].reset();
                 }
@@ -230,11 +232,12 @@ public class UAInvertedIndex {
         t.setStart(recordCount);  // Update the start field for the token in the global hash table.
         //gh.put( t );
 
-        rtfIDF = (float) ( Double.parseDouble( top.substring( (STR_LEN+1 + DOCID_LEN), top.length() ) )
-               * Math.log( (double) size / t.getCount() ) ); // Calculate inverse document frequency for term from gh(t).numberOfDocuments .
-
+        rtf = (float) Double.parseDouble( top.substring( (STR_LEN+1 + DOCID_LEN), top.length() ) );
         post.writeInt( Integer.parseInt( top.substring(STR_LEN+1,STR_LEN+1 + DOCID_LEN).trim() ) ); // Write postings record for the token (documentID, termFrequency, OR rtf * idf) .
-        post.writeFloat(rtfIDF);
+        post.writeFloat( rtf );
+
+        idf = (float) Math.log( (double) size / t.getCount() ); // Calculate inverse document frequency for term from gh(t).numberOfDocuments .
+        t.setIDF(idf);
 
         recordCount = recordCount + 1;
       } // While all postings haven't been written do this.
@@ -264,28 +267,24 @@ public class UAInvertedIndex {
     dict.seek(0);
 
     String term;
-    int id;
-    int ct;
+    float idf;
     int st;
 
     for(int i = 0; i < gh.map.length; i++) {
 
       if(gh.map[i] != null) {
         term = gh.map[i].getT();
-        ct = gh.map[i].getCount();
+        idf = gh.map[i].getIDF();
         st = gh.map[i].getStart();
-        //id = t.getID();
       } else {
         term = NA;
-        ct = 0;
+        idf = 0;
         st = 0;
-        //id = 0;
       }
 
       dict.writeUTF( formatXString(term,STR_LEN) );
-      dict.writeInt( ct );
+      dict.writeFloat( idf );
       dict.writeInt( st );
-      //dict.writeInt( id );
     }
 
     dict.close();
