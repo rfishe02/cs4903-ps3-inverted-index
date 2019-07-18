@@ -26,14 +26,25 @@ public class Search extends HttpServlet {
       try {
       
         PrintWriter out = response.getWriter();
-      
         ServletContext con = getServletContext();
         
-        File inDir = new File( con.getRealPath("input") );
-        File rafDir = new File(con.getRealPath("raf"));
+        String query = request.getParameter("search-box");
+        String[] spl = query.split(" ");
         
-        out.println(inDir);
-        out.println(rafDir);
+        out.println(query);
+        
+        File inDir = new File( con.getRealPath("input") );
+        File rafDir = new File( con.getRealPath("raf") );
+        
+        out.println(inDir.getPath());
+        out.println(rafDir.getPath());
+        
+        UAQuery q = new UAQuery(rafDir,"stats.raf");
+        String[] res = q.runQuery(inDir,rafDir,spl);
+        
+        for(String s : res) {
+            out.println(s);
+        }
         
         out.close();
       
