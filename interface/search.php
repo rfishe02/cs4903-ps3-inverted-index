@@ -1,5 +1,22 @@
 <?php
 
+    function overflow32($v) {
+        $v = $v % 4294967296;
+        if ($v > 2147483647) return $v - 4294967296;
+        elseif ($v < -2147483648) return $v + 4294967296;
+        else return $v;
+    }
+
+    function hashCode( $s ) {
+        $h = 0;
+        $len = strlen($s);
+        for($i = 0; $i < $len; $i++) {
+            $h = overflow32(31 * $h + ord($s[$i]));
+        }
+
+        return $h;
+    }
+
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         // Get the form fields and remove whitespace.
@@ -15,9 +32,24 @@
             exit;
         } // Check that data was sent to the engine.
 
-        //fopen('./output/dict.raf', 'r');
+        $file = fopen('./output/dict.raf', 'r');
         
-        echo "Success!";
+        $hashcode = hashcode($text);
+        
+        if($hashcode < 0) {
+            $hashcode = $hashcode * -1;
+        }
+        
+        $ind = (($hashcode + 0) * 16) % (90000-1);
+        
+        if($file) {
+            fseek($file,ind);
+            echo $hashcode;
+            echo fgets($file,8);
+            fclose($file);
+        } else {
+            echo "FAIL";
+        }
        
         // Send the search.
         /*
@@ -33,5 +65,7 @@
         http_response_code(403); // Not a POST request, set a 403 (forbidden) response code.
         echo "Oops! There was a problem with your submission.";
     }
+    
+    
 
 ?>
