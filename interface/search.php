@@ -17,7 +17,7 @@
 
         //fopen('./output/dict.raf', 'r');
         
-        echo "Success!"
+        echo "Success!";
        
         // Send the search.
         /*
