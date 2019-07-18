@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="search.js"></script>
+    
+    <title>Gengar Engine</title>
+
+  </head>
+  <body>
+    
+    <nav class="navbar navbar navbar-dark" style = "background-color: #4c2cab;">
+    
+        <div class="d-flex justify-content-start align-self-center flex-wrap w-100 h-auto" style = "margin-top: 15px;">
+        
+            <div class ="p-2"><a class="text-white navbar-brand">Navbar</a></div>
+            
+            <div class ="p-2 w-100" style = "max-width: 700px;"> 
+            
+                <form class ="form-inline w-auto" id ="ajax-search" action="search" method="POST"> 
+                <!-- action is the url mapping for the server -->
+                
+                    <div class="form-row align-self-center w-auto" style="min-width: 100%;">
+                    
+                        <div class="col-auto mb-3" style="min-width: 75%;">
+                            <input class="form-control mr-sm-2 w-auto" type="search" placeholder="Search" aria-label="Search" style="min-width: 100%;" id = "search-box" name ="search-box" >
+                        </div>
+                    
+                        <div class="col-auto mb-1">
+                            <button class="text-white btn btn-outline-danger" type="submit">Search</button>
+                        </div>
+                    
+                    </div>
+                    
+                </form>
+                
+            </div>
+ 
+        </div>
+    
+    </nav>
+    
+    <div id="result">
+    
+    
+    <p><span id="test"></span></p>
+    
+    
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  </body>
+</html>
