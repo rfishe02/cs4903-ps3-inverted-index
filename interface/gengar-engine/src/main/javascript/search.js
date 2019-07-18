@@ -1,5 +1,6 @@
 
 // https://blog.teamtreehouse.com/create-ajax-contact-form
+// https://www.journaldev.com/4742/jquery-ajax-jsp-servlet-java-example
 
 $(function() {
     
@@ -8,12 +9,11 @@ $(function() {
     
     $(form).submit(function(event) {
         event.preventDefault(); // Stop the browser from submitting the form.
-        var formData = $(form).serialize();
-        
+
         $.ajax({
-            type: 'POST',
-            url: $(form).attr('action'),
-            data: formData
+            type: form.attr("method"),
+            url: form.attr("action"),
+            data: form.serialize()
         }).done(function(response) {
 
             $(formMessages).text(response);

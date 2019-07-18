@@ -1,13 +1,9 @@
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
 
-//@WebServlet(name = "Search", urlPatterns = "/Search")
+//@WebServlet("/search")
 public class Search extends HttpServlet {
 
    public void init() throws ServletException {
@@ -16,18 +12,32 @@ public class Search extends HttpServlet {
 
    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-      // Set response content type
       response.setContentType("text/html");
-
-      // Actual logic goes here.
       PrintWriter out = response.getWriter();
-      out.println("<h1>test</h1>");
+      out.println("Not supported.");
       out.close();
       
    }
    
    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
    
+      response.setContentType("text/html");
+
+      try {
+      
+        PrintWriter out = response.getWriter();
+      
+        ServletContext con = getServletContext();
+        File f = new File(con.getRealPath("/raf/dict.raf"));
+        
+        
+        
+        out.close();
+      
+      } catch( Exception ex ) {
+        System.exit(1);
+      }
+
    }
 
    public void destroy() {

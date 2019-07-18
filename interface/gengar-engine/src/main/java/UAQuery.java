@@ -11,54 +11,28 @@ import java.nio.charset.*;
 
 public class UAQuery {
 
-  static String NA;
-  static int size;
-  static int STR_LEN;
-  static int MAP_LEN;
-  static int DICT_LEN;
-  static int POST_LEN;
-  static int seed;
-
-  public static void main(String[] args) {
-    if(args.length < 1) {
-      String[] test = {"input2","output","cat","pictures","videos"};
-      args = test;
-    }/*************************************************************************/
-
-    File inDir = new File(args[0]);
-    File rafDir = new File(args[1]);
-
-    try {
-      RandomAccessFile stat = new RandomAccessFile(rafDir.getPath()+"/stats.raf","rw");
-      stat.seek(0);
-      NA = stat.readUTF();
-      size = stat.readInt();
-      STR_LEN = stat.readInt();
-      MAP_LEN = stat.readInt();
-      DICT_LEN = STR_LEN + (stat.readInt() * 4);
-      POST_LEN = stat.readInt() * 4;
-      seed = stat.readInt();
-      stat.close();
-
-      runQuery(inDir,rafDir,args);
-
-    } catch(IOException ex) {
-      ex.printStackTrace();
-      System.exit(1);
-    }
-
+  String NA;
+  int size;
+  int STR_LEN;
+  int MAP_LEN;
+  int DICT_LEN;
+  int POST_LEN;
+  int seed;
+  
+  public UAQuery(File rafDir, String filename) {
+    RandomAccessFile stat = new RandomAccessFile(rafDir.getPath()+"/"+filename,"rw");
+    stat.seek(0);
+    NA = stat.readUTF();
+    size = stat.readInt();
+    STR_LEN = stat.readInt();
+    MAP_LEN = stat.readInt();
+    DICT_LEN = STR_LEN + (stat.readInt() * 4);
+    POST_LEN = stat.readInt() * 4;
+    seed = stat.readInt();
+    stat.close();
   }
 
-  /**
-  The main function used to process a query and return a list of results. It requires the input and output
-  directories from the companion class, UAInvertedIndex.
-  @param inDir An input directory of temporary files.
-  @param rafDar
-  @param query A query as an array of words.
-  @return A list of the top k results for the given query.
-  */
-
-  public static String[] runQuery(File inDir, File rafDir, String[] query) {
+  public String[] runQuery(File inDir, File rafDir, String[] query) {
     String[] result = null;
 
     try {
@@ -90,7 +64,7 @@ public class UAQuery {
   @param query A query as an array of words.
   */
 
-  public static void mapRowsCols(File inDir, File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashMap<String,Integer> q, String[] query) throws IOException {
+  public void mapRowsCols(File inDir, File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashMap<String,Integer> q, String[] query) throws IOException {
     System.out.println("mapping terms and documents to rows and columns.");
 
     RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","rw");
@@ -175,7 +149,7 @@ public class UAQuery {
   @param query A hash set that will contain all distinct words in the query.
   */
 
-  public static float[][] buildTDM(File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashMap<String,Integer> query) throws IOException {
+  public float[][] buildTDM(File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashMap<String,Integer> query) throws IOException {
     System.out.println("building the term document matrix.");
 
     RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","rw");
@@ -232,7 +206,7 @@ public class UAQuery {
   @param k
   */
 
-  public static String[] getDocs(File rafDir, HashMap<Integer,Integer> docMap, float[][] tdm, int k)  throws IOException {
+  public String[] getDocs(File rafDir, HashMap<Integer,Integer> docMap, float[][] tdm, int k)  throws IOException {
     System.out.println("finding relevant documents.");
 
     RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","rw");
@@ -261,7 +235,7 @@ public class UAQuery {
   @param q
   */
 
-  public static float calcCosineSim(float[][] tdm, int d, int q) {
+  public float calcCosineSim(float[][] tdm, int d, int q) {
     double one = 0.0;
     double two = 0.0;
     double tot = 0.0;
@@ -279,7 +253,7 @@ public class UAQuery {
   @param tdm
   */
 
-  public static void printTDM(float[][] tdm) {
+  public void printTDM(float[][] tdm) {
     for(int a = 0; a < tdm.length; a++) {
       System.out.printf("[ %-3s ] ",a);
       for(int b = 0; b < tdm[0].length; b++) {
@@ -321,13 +295,13 @@ public class UAQuery {
   @return A hashcode for a given String.
   */
 
-  public static int hash(String str, int i, int n) {
+  public int hash(String str, int i, int n) {
     return ( Math.abs(str.hashCode()) + i ) % (n-1);
   } // h(k,i) = (h'(k) + i) mod m
 
   /** */
 
-  public static String convertText(String str, int limit) {
+  public String convertText(String str, int limit) {
     String out = "";
     int len;
 

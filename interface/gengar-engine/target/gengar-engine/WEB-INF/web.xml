@@ -12,7 +12,7 @@
   
   <servlet-mapping>
       <servlet-name>Search</servlet-name>
-      <url-pattern>/Search</url-pattern>
+      <url-pattern>/search</url-pattern>
   </servlet-mapping>
   
 </web-app>
