@@ -7,7 +7,7 @@
   
   <servlet>
       <servlet-name>Search</servlet-name>
-      <servlet-class>Search</servlet-class>
+      <servlet-class>src.main.java.Search</servlet-class>
   </servlet>
   
   <servlet-mapping>

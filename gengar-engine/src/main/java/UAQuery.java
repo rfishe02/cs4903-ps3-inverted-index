@@ -1,4 +1,6 @@
 
+package src.main.java;
+
 import java.io.*;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -87,7 +89,7 @@ public class UAQuery {
     int docID;
     int i;
 
-    for(int a = 2; a < query.length; a++) {
+    for(int a = 0; a < query.length; a++) {
       query[a] = convertText(query[a],STR_LEN);
 
       i = 0;  // Find the term in the dictionary.
@@ -216,12 +218,12 @@ public class UAQuery {
     System.out.println("finding relevant documents.");
 
     RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","rw");
-    PriorityQueue<Result> pq = new PriorityQueue<Result>(new ResultComparator());
+    PriorityQueue<Result> pq = new PriorityQueue<Result>( new ResultComparator() );
     String[] res = new String[k];
 
     for( Map.Entry<Integer,Integer> entry : docMap.entrySet() ) {
-      map.seek(entry.getKey() * (MAP_LEN + 2));
-      pq.add(new Result( calcCosineSim(tdm, entry.getValue(), 0), map.readUTF() ));
+      map.seek( entry.getKey() * (MAP_LEN + 2) );
+      pq.add( new Result( calcCosineSim(tdm, entry.getValue(), 0), map.readUTF() ) );
     }
 
     int j = 0;

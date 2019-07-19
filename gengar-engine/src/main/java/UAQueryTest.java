@@ -1,4 +1,6 @@
 
+package src.main.java;
+
 import java.io.*;
 
 public class UAQueryTest {
@@ -21,9 +23,16 @@ public class UAQueryTest {
 
     File inDir = new File(args[0]);
     File rafDir = new File(args[1]);
+    
+    String[] query = new String[args.length-2];
+    int j = 0;
+    for(int i = 2; i < args.length; i++) {
+        query[j] = args[i];
+        j++;
+    }
 
     UAQuery q = new UAQuery(rafDir,"stats.raf");
-    q.runQuery(inDir,rafDir,args);
+    q.runQuery(inDir,rafDir,query);
 
   }
 
