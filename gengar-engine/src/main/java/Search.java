@@ -32,20 +32,17 @@ public class Search extends HttpServlet {
         
         String query = request.getParameter("search-box");
         String[] spl = query.split(" ");
-        
-        out.println(query);
-        
-        File inDir = new File( con.getRealPath("input") );
-        File rafDir = new File( con.getRealPath("raf") );
-        
-        out.println(inDir.getPath());
-        out.println(rafDir.getPath());
-        
+   
+        File inDir = new File( con.getResource("resources/input").toURI() );
+        File rafDir = new File( con.getResource("resources/raf").toURI() );
+     
         UAQuery q = new UAQuery(rafDir,"stats.raf");
         String[] res = q.runQuery(inDir,rafDir,spl);
         
+        out.print("resources/input ");
+        
         for(String s : res) {
-            out.println(s);
+            out.print(s+" ");
         }
         
         out.close();

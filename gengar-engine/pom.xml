@@ -47,34 +47,35 @@
               <target>1.6</target>
           </configuration>
       </plugin>
-      
-      <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-war-plugin</artifactId>
-          <version>2.3</version>
-          <configuration>
-              <webResources>
-                  <resource>
-                      <directory>src/main/javascript</directory>
-                  </resource>
-                  <resource>
-                      <directory>src/main/css</directory>
-                  </resource>
-                  <resource>
-                      <directory>src/main/resources</directory>
-                  </resource>
-                  <resource>
-                      <directory>/home/nae/clean/output</directory>
-                      <targetPath>input</targetPath>
-                  </resource>
-                  <resource>
-                      <directory>/home/nae/ps3/output</directory>
-                      <targetPath>raf</targetPath>
-                  </resource>
-              </webResources>
-         </configuration>
-	   </plugin>
-      
     </plugins>
+    
+    <!-- 
+    Add to /usr/share/tomcat/conf/server.xml
+    <Context docBase="/srv/tomcat/webapps/gengar-engine/resources/input" path="/gengar-engine/resources/input"><Resources allowLinking="true"/></Context>
+    -->
+    
+    <resources>
+        <resource>
+            <directory>src/main/javascript</directory>
+            <targetPath>${project.build.directory}/gengar-engine/javascript</targetPath>
+        </resource>
+        <resource>
+            <directory>src/main/css</directory>
+            <targetPath>${project.build.directory}/gengar-engine/css</targetPath>
+        </resource>
+        <resource>
+            <directory>src/main/resources</directory>
+            <targetPath>${project.build.directory}/gengar-engine/resources</targetPath>
+        </resource>
+        <resource>
+            <directory>/home/nae/clean/output</directory>
+            <targetPath>${project.build.directory}/gengar-engine/resources/input</targetPath>
+        </resource>
+        <resource>
+            <directory>/home/nae/ps3/output</directory>
+            <targetPath>${project.build.directory}/gengar-engine/resources/raf</targetPath>
+        </resource>
+    </resources>
+    
   </build>
 </project>
