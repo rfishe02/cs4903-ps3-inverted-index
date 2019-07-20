@@ -50,8 +50,15 @@
     </plugins>
     
     <!-- 
-    Add to /usr/share/tomcat/conf/server.xml
-    <Context docBase="/srv/tomcat/webapps/gengar-engine/resources/input" path="/gengar-engine/resources/input"><Resources allowLinking="true"/></Context>
+    Add to /usr/share/tomcat/conf/server.xml between <Hosts>
+    
+    <Context docBase="/home/<user>/clean/output" path="/gengar-engine/resources/input"><Resources allowLinking="true"/></Context>
+    
+    <Context docBase="/home/<user>/ps3/output" path="/gengar-engine/resources/raf"><Resources allowLinking="false"/></Context>
+    
+    Previous:
+    
+    <Context docBase="/srv/tomcat/webapps/gengar-engine/resources/input" path="/gengar-engine/resources/input"><Resources allowLinking="true"/></Context>  (Map sever link to simple url)
     -->
     
     <resources>
@@ -67,6 +74,7 @@
             <directory>src/main/resources</directory>
             <targetPath>${project.build.directory}/gengar-engine/resources</targetPath>
         </resource>
+        <!--
         <resource>
             <directory>/home/nae/clean/output</directory>
             <targetPath>${project.build.directory}/gengar-engine/resources/input</targetPath>
@@ -75,6 +83,7 @@
             <directory>/home/nae/ps3/output</directory>
             <targetPath>${project.build.directory}/gengar-engine/resources/raf</targetPath>
         </resource>
+        -->
     </resources>
     
   </build>
