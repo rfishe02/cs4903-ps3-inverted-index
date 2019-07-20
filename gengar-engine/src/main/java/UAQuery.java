@@ -23,7 +23,7 @@ public class UAQuery {
   
   public UAQuery(File rafDir, String filename) {
     try {
-        RandomAccessFile stat = new RandomAccessFile(rafDir.getPath()+"/"+filename,"rw");
+        RandomAccessFile stat = new RandomAccessFile(rafDir.getPath()+"/"+filename,"r");
         stat.seek(0);
         NA = stat.readUTF();
         size = stat.readInt();
@@ -75,9 +75,9 @@ public class UAQuery {
   public void mapRowsCols(File inDir, File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashMap<String,Integer> q, String[] query) throws IOException {
     System.out.println("mapping terms and documents to rows and columns.");
 
-    RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","rw");
-    RandomAccessFile post = new RandomAccessFile(rafDir.getPath()+"/post.raf","rw");
-    RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","rw");
+    RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","r");
+    RandomAccessFile post = new RandomAccessFile(rafDir.getPath()+"/post.raf","r");
+    RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","r");
 
     BufferedReader br;
     String read;
@@ -160,8 +160,8 @@ public class UAQuery {
   public float[][] buildTDM(File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashMap<String,Integer> query) throws IOException {
     System.out.println("building the term document matrix.");
 
-    RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","rw");
-    RandomAccessFile post = new RandomAccessFile(rafDir.getPath()+"/post.raf","rw");
+    RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","r");
+    RandomAccessFile post = new RandomAccessFile(rafDir.getPath()+"/post.raf","r");
     float[][] tdm = new float[termMap.size()][docMap.size()+1]; // Add the query column.
     String record = NA;
     float rtfIDF;
@@ -217,7 +217,7 @@ public class UAQuery {
   public String[] getDocs(File rafDir, HashMap<Integer,Integer> docMap, float[][] tdm, int k)  throws IOException {
     System.out.println("finding relevant documents.");
 
-    RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","rw");
+    RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","r");
     PriorityQueue<Result> pq = new PriorityQueue<Result>( new ResultComparator() );
     String[] res = new String[k];
 

@@ -50,15 +50,21 @@
     </plugins>
     
     <!-- 
-    Add to /usr/share/tomcat/conf/server.xml between <Hosts>
+    Add to /usr/share/tomcat/conf/server.xml between <Hosts>:
     
-    <Context docBase="/home/<user>/clean/output" path="/gengar-engine/resources/input"><Resources allowLinking="true"/></Context>
+        <Context docBase="/home/srv-read/clean/output" path="/gengar-engine/resources/input"><Resources allowLinking="true"/></Context>
+        <Context docBase="/home/srv-read/ps3/output" path="/gengar-engine/resources/raf"><Resources allowLinking="false"/></Context>
     
-    <Context docBase="/home/<user>/ps3/output" path="/gengar-engine/resources/raf"><Resources allowLinking="false"/></Context>
+    Update file permissions for tomcat user:
+    
+        sudo groupadd srvread
+        groups tomcat (see groups for tomcat user)
+        sudo usermod -a -G srvread tomcat (add tomcat to srvread)
+        sudo chown -R <user>:srvread srv-read (change group of srv-read directory)
     
     Previous:
     
-    <Context docBase="/srv/tomcat/webapps/gengar-engine/resources/input" path="/gengar-engine/resources/input"><Resources allowLinking="true"/></Context>  (Map sever link to simple url)
+        <Context docBase="/srv/tomcat/webapps/gengar-engine/resources/input" path="/gengar-engine/resources/input"><Resources allowLinking="true"/></Context>  (Map sever link to simple url)
     -->
     
     <resources>
