@@ -84,6 +84,7 @@ public class UAInvertedIndex {
     int docID = 0;
     int totalFreq;
 
+    Stemmer stem = new Stemmer();
     String out;
 
     try {
@@ -99,7 +100,8 @@ public class UAInvertedIndex {
         while((read = br.readLine())!=null) {
 
           //read = new String(read.getBytes("US-ASCII"));
-          read = convertText(read,STR_LEN);
+          read = read.replaceAll("[@\\.]", " ");
+          read = convertText(stem,read,STR_LEN);
 
           if( ht.containsKey( read ) ) {
             ht.put( read, ht.get( read )+1);
@@ -431,8 +433,14 @@ public class UAInvertedIndex {
       return s1.compareToIgnoreCase(s2);
     }
   }
+  
+  /**
+  @param stem 
+  @param str 
+  @param limit
+  */
 
-  public static String convertText(String str, int limit) {
+  public String convertText(Stemmer stem, String str, int limit) {
     String out = "";
     int len;
 
@@ -451,6 +459,13 @@ public class UAInvertedIndex {
         }
       }
     }
+    
+    out = stem.stemString(str);
+    
+    if(out.length() > 7) {
+      out = out.substring(0,8);
+    }
+    
     return out;
   }
 

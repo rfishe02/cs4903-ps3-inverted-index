@@ -131,6 +131,7 @@ public class UAQuery {
           br = new BufferedReader(new InputStreamReader(new FileInputStream( inDir.getPath()+"/"+map.readUTF().trim() ), "UTF8"));
 
           while((read=br.readLine())!=null) {
+            read = read.replaceAll("[@\\.]", " ");
             read = convertText(read,STR_LEN);
 
             if(!termMap.containsKey(read)) {
@@ -309,7 +310,7 @@ public class UAQuery {
 
   /** */
 
-  public String convertText(String str, int limit) {
+  public String convertText(Stemmer stem, String str, int limit) {
     String out = "";
     int len;
 
@@ -328,7 +329,73 @@ public class UAQuery {
         }
       }
     }
+    
+    out = stem.stemString(str);
+    
+    if(out.length() > 7) {
+      out = out.substring(0,8);
+    }
+    
     return out;
   }
+  
+  /*
+  public String cleanWord(String str) {
 
+    str = str.replaceAll("['’\\.\u2019]|(&#(0)?(39|46|x27|14[56]|18[36]);)",""); // Remove all punctuation.
+
+    if(str.contains("&")) {
+      str = str.replaceAll("&([aAeEiIoOuU]([a-z]){3,6}|#[1234]([0-9]){2});","?"); // Substitute accented characters with a '?'.
+      str = str.replaceAll("[&]([#])?([0x])? ( ([3-9]){2} | amp | minus | 8722 | 2212 ) [;]"," "); // Replace certain non-punctuation with a space.
+    }
+
+    return str;
+  }
+
+  public String cleanHTML(String str) {
+    return str.replaceAll("[\\.]", " ");
+  }
+
+  public String cleanEmail(String str) {
+    return str.replaceAll("[@\\.]", " ");
+  }
+
+  public String cleanPhone(String str) {
+    String tmp = str;
+    String[] spl = tmp.split("[\\s\\.-]");
+
+    if(spl.length > 2) {
+      tmp = spl[spl.length-3] +""+ spl[spl.length-2] +""+ spl[spl.length-1];
+    } else if(spl.length > 1) {
+      tmp = spl[spl.length-2] +""+ spl[spl.length-1];
+    }
+
+    tmp = tmp.replaceAll("[^0-9]", "");
+    return tmp;
+  }
+
+  public String cleanPrice() {
+    return null; // Still need to figure this out.
+  }
+  */
+
+  /*
+  public static String formatString(Stemmer stem, String[] spl, String str) {
+    spl = str.split("([\\s-&])+");
+
+    str = "";
+    for(String s : spl) {
+      str += s;
+    }
+
+    str = stem.stemString(str);
+    
+    if(str.length() > 7) {
+      str = str.substring(0,8);
+    }
+    
+    return str;
+  }
+  */
+  
 }
