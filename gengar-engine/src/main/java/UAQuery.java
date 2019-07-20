@@ -44,9 +44,9 @@ public class UAQuery {
     String[] result = null;
 
     try {
-      HashMap<Integer,Integer> docMap = new HashMap<Integer,Integer>();
-      HashMap<String,Integer> termMap = new HashMap<String,Integer>();
-      HashMap<String,Integer> q = new HashMap<String,Integer>();
+      HashMap<Integer,Integer> docMap = new HashMap<Integer,Integer>(80000);
+      HashMap<String,Integer> termMap = new HashMap<String,Integer>(2000000);
+      HashMap<String,Integer> q = new HashMap<String,Integer>(1000);
 
       mapRowsCols(inDir,rafDir,termMap,docMap,q,query);
       float[][] tdm = buildTDM(rafDir,termMap,docMap,q);
@@ -158,7 +158,7 @@ public class UAQuery {
   */
 
   public float[][] buildTDM(File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashMap<String,Integer> query) throws IOException {
-    System.out.println("building the term document matrix.");
+    System.out.println("building the term document matrix of "+termMap.size()+" x "+docMap.size()+" size");
 
     RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","r");
     RandomAccessFile post = new RandomAccessFile(rafDir.getPath()+"/post.raf","r");
