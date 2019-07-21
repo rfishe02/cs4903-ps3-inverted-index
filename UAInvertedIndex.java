@@ -317,13 +317,14 @@ public class UAInvertedIndex {
     int size;
 
     File[] A = inDir.listFiles();
+    int len = Math.min(500,(int)Math.sqrt(A.length));
 
     try {
       for(int c = 1; c < n; c = 2 * c) {
 
         size = (int)( (double)(n-1) / c );
 
-        if( size > Math.sqrt(A.length) ) {
+        if( size > len ) {
           for(int p = 0; p < n-1; p += 2 * c) {
 
             int q = Math.min(p + (c-1), n-1);

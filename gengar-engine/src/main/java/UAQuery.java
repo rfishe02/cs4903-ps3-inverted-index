@@ -82,6 +82,7 @@ public class UAQuery {
     BufferedReader br;
     String read;
     String record;
+    float rtfidf;
     int row = 0;
     int col = 1; // Reserve first column for the query.
     int count;
@@ -92,25 +93,23 @@ public class UAQuery {
     Stemmer stem = new Stemmer();
 
     for(int a = 0; a < query.length; a++) {
-      query[a] = stem.stemString(out);
+    
+      query[a] = stem.stemString(query[a]);
       query[a] = convertText(query[a],STR_LEN);
 
       i = 0;  // Find the term in the dictionary.
       do {
         dict.seek( hash(query[a],i,seed) * (DICT_LEN + 2) );
         record = dict.readUTF();
-
-        //System.out.println(record+"END OF RECORD");
-
         i++;
       } while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(query[a]) != 0);
 
       if(record.trim().compareToIgnoreCase(NA) != 0) {
+      
         if(!termMap.containsKey(query[a])) {
           termMap.put(query[a],row);
           row++;
         } // Map terms to rows.
-
         if(q.containsKey(query[a])) {
           q.put(query[a],q.get(query[a])+1);
         } else {
@@ -122,29 +121,34 @@ public class UAQuery {
 
         post.seek(((start-count)+1) * POST_LEN);
         for(int x = 0; x < count; x++) {
+        
           docID = post.readInt();
-          post.readFloat(); // rtf
+          rtfidf = post.readFloat();          
+          
+          if(rtfidf > 0.03) {
+          
+            if(!docMap.containsKey(docID)) {
+              docMap.put(docID,col);
+              col++;
+            } // Map document ID to a column.
+          
+            map.seek(docID * (MAP_LEN + 2));
+            br = new BufferedReader(new InputStreamReader(new FileInputStream( inDir.getPath()+"/"+map.readUTF().trim() ), "UTF8"));
+          
+            while((read=br.readLine())!=null) {
+              read = convertText(read,STR_LEN);
 
-          if(!docMap.containsKey(docID)) {
-            docMap.put(docID,col);
-            col++;
-          } // Map document ID to a column.
-
-          map.seek(docID * (MAP_LEN + 2));
-          br = new BufferedReader(new InputStreamReader(new FileInputStream( inDir.getPath()+"/"+map.readUTF().trim() ), "UTF8"));
-
-          while((read=br.readLine())!=null) {
-            read = convertText(read,STR_LEN);
-
-            if(!termMap.containsKey(read)) {
-              termMap.put(read,row);
-              row++;
-            }
-
-          } // Open file & map terms within to columns.
-          br.close();
+              if(!termMap.containsKey(read)) {
+                termMap.put(read,row);
+                row++;
+              }
+            } // Open file & map terms within to columns.
+            br.close();
+          
+          } // Accept if rtf - idf is more than a certain amount.
 
         } // Read each posting for the term.
+        
       }
     } // Map terms & documets to columns.
 
@@ -170,17 +174,15 @@ public class UAQuery {
     float rtfIDF;
     int count;
     int start;
-    int docID;
+    int docID = 0;
     int i;
 
     for( Map.Entry<String,Integer> entry : termMap.entrySet() ) {
+    
       i = 0;
       do {
         dict.seek( hash(entry.getKey(),i,seed) * (DICT_LEN + 2) );
         record = dict.readUTF();
-
-        //System.out.println(record+"END OF RECORD");
-
         i++;
       } while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(entry.getKey()) != 0);
 
@@ -193,7 +195,7 @@ public class UAQuery {
           tdm[ entry.getValue() ][ 0 ] = (float) ( query.get( entry.getKey() ) * Math.log(size / count) ); // Need to determine the correct value, ie: TF-IDF.
         }
 
-        post.seek(((start-count)+1) * POST_LEN);
+        post.seek(( (start+1)-count ) * POST_LEN);
         for(int x = 0; x < count; x++) {
           docID = post.readInt();
           rtfIDF = post.readFloat();
@@ -202,8 +204,9 @@ public class UAQuery {
             tdm[ entry.getValue() ][ docMap.get(docID) ] = rtfIDF;
           }
         } // Read each posting for the term.
-
+    
       }
+      
     }
     dict.close();
     post.close();
@@ -229,10 +232,12 @@ public class UAQuery {
       pq.add( new Result( calcCosineSim(tdm, entry.getValue(), 0), map.readUTF() ) );
     }
 
+    Result r;
     int j = 0;
     while(j < k && !pq.isEmpty()) {
-      res[j] = pq.remove().name;
-      System.out.println(res[j]);
+      r = pq.remove();
+      res[j] = r.name;
+      System.out.println(r.name+" "+r.score);
       j++;
     }
 
@@ -258,45 +263,6 @@ public class UAQuery {
     }
 
     return (float)( (tot) / (Math.sqrt(one) * Math.sqrt(two)) );
-  }
-
-  /**
-  @param tdm
-  */
-
-  public void printTDM(float[][] tdm) {
-    for(int a = 0; a < tdm.length; a++) {
-      System.out.printf("[ %-3s ] ",a);
-      for(int b = 0; b < tdm[0].length; b++) {
-        System.out.printf("%-3.2f ",tdm[a][b]);
-      }
-      System.out.println();
-    }
-  }
-
-  /** */
-
-  static class Result {
-    float score;
-    String name;
-
-    public Result(float score, String name) {
-      this.score = score;
-      this.name = name;
-    }
-  }
-
-  /** */
-
-  static class ResultComparator implements Comparator<Result> {
-    public int compare(Result s1, Result s2) {
-      if(s1.score > s2.score) {
-        return -1;
-      } else if(s1.score < s2.score) {
-        return 1;
-      } else {
-        return 0;        }
-    }
   }
 
   /**
@@ -336,57 +302,43 @@ public class UAQuery {
     return out;
   }
   
-  /*
-  public String cleanWord(String str) {
-
-    str = str.replaceAll("['’\\.\u2019]|(&#(0)?(39|46|x27|14[56]|18[36]);)",""); // Remove all punctuation.
-
-    if(str.contains("&")) {
-      str = str.replaceAll("&([aAeEiIoOuU]([a-z]){3,6}|#[1234]([0-9]){2});","?"); // Substitute accented characters with a '?'.
-      str = str.replaceAll("[&]([#])?([0x])? ( ([3-9]){2} | amp | minus | 8722 | 2212 ) [;]"," "); // Replace certain non-punctuation with a space.
-    }
-
-    return str;
-  }
-
-  public String cleanHTML(String str) {
-    return str.replaceAll("[\\.]", " ");
-  }
-
-  public String cleanEmail(String str) {
-    return str.replaceAll("[@\\.]", " ");
-  }
-
-  public String cleanPhone(String str) {
-    String tmp = str;
-    String[] spl = tmp.split("[\\s\\.-]");
-
-    if(spl.length > 2) {
-      tmp = spl[spl.length-3] +""+ spl[spl.length-2] +""+ spl[spl.length-1];
-    } else if(spl.length > 1) {
-      tmp = spl[spl.length-2] +""+ spl[spl.length-1];
-    }
-
-    tmp = tmp.replaceAll("[^0-9]", "");
-    return tmp;
-  }
-
-  public String cleanPrice() {
-    return null; // Still need to figure this out.
-  }
+    /**
+  @param tdm
   */
 
-  /*
-  public static String formatString(Stemmer stem, String str) {
-    
-    str = stem.stemString(str);
-    
-    if(str.length() > 7) {
-      str = str.substring(0,8);
+  public void printTDM(float[][] tdm) {
+    for(int a = 0; a < tdm.length; a++) {
+      System.out.printf("[ %-3s ] ",a);
+      for(int b = 0; b < tdm[0].length; b++) {
+        System.out.printf("%-3.2f ",tdm[a][b]);
+      }
+      System.out.println();
     }
-    
-    return str;
   }
-  */
+
+  /** */
+
+  static class Result {
+    float score;
+    String name;
+
+    public Result(float score, String name) {
+      this.score = score;
+      this.name = name;
+    }
+  }
+
+  /** */
+
+  static class ResultComparator implements Comparator<Result> {
+    public int compare(Result s1, Result s2) {
+      if(s1.score > s2.score) {
+        return -1;
+      } else if(s1.score < s2.score) {
+        return 1;
+      } else {
+        return 0;        }
+    }
+  }
   
 }

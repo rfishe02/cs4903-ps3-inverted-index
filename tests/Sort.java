@@ -294,5 +294,63 @@ public class Sort {
     }
 
   }*/
+  
+  /*
+  for( Map.Entry<Integer,Integer> mapEntry : docMap.entrySet() ) {
+          
+          int l = (start+1)-count;
+          int r = (start+1);
+  
+          while(l <= r) {
+          
+            int m = (l+r)/2;
+            post.seek(m * POST_LEN);
+            docID = post.readInt();
+            
+            if( docID > mapEntry.getKey() ) {
+              r = m - 1;
+            } else if( docID < mapEntry.getKey() ) {
+              l = m + 1;
+            } else {
+              break;
+            }
+          
+            System.out.println(entry.getKey());
+            System.out.println(l+" "+m+" "+r);
+          }
+          
+          if(docID == mapEntry.getKey()) {
+            rtfIDF = post.readFloat();
+            tdm[ entry.getValue() ][ docMap.get(docID) ] = rtfIDF;
+          }
+          
+        }
+  */
+  
+  /*
+  while((read=br.readLine())!=null) {
+              read = convertText(read,STR_LEN);
+
+              
+              String tmp;
+              i = 0;  // Find the term in the dictionary.
+              do {
+                dict.seek( hash(read,i,seed) * (DICT_LEN + 2) );
+                tmp = dict.readUTF();
+                i++;
+              } while( i < seed && tmp.trim().compareToIgnoreCase(NA) != 0 && tmp.trim().compareToIgnoreCase(read) != 0);
+     
+              if(tmp.trim().compareToIgnoreCase(NA) != 0 && dict.readInt() < 2000) {
+              
+                if(!termMap.containsKey(read)) {
+                  termMap.put(read,row);
+                  row++;
+                }
+              
+              }
+              
+       
+            } // Open file & map terms within to columns.
+  */
 
 }
