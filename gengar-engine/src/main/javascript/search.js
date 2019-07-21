@@ -16,31 +16,31 @@ $(function() {
         }).done(function(response) {
             
             $('#result').empty();
-            
-            //$('#result').append("<p>"+response+"</p><br>");
-       
             var links = response.split(/\s+/);
             
             if(links.length > 1) {
+                
+                $('#result').append("<div div class='row justify-content-start align-items-center h-100' id ='result-row'>");
              
                 for(a = 1; a < links.length; a++) {
                     
                     var text = links[a].split(",");
-                    $('#result').append("<a href='"+links[0]+"/"+text[0]+"'>"+text[0]+"</a><br>");
                     
                     var out = "";
                     for(b = 1; b < text.length; b++) {
                         out += text[b]+" ";
                     }
                     
-                    if(text.length > 0) {
-                        $('#result').append("<p>"+out+"</p><br>");   
+                    if(out.length > 0) {
+                        $('#result-row').append("<div class='col-12 mb-4'><div class='card h-100'><div class='card-body'><br><h5 class='card-title'><a href='"+links[0]+"/"+text[0]+"'>"+text[0]+"</a></h5><p class='card-text'>"+out+"</p><br></div></div></div>");
                     }
-                    
+   
                 }
                 
+                $('#result-row').append("</div>");
+                
             } else {
-                $('#result').append("<p>"+response+"</p><br>");  
+                $('#result').append("<div div class='row justify-content-center align-items-center h-100'><div class='col-12 mb-5'><p class='display-2 text-muted text-center'>"+response+"</p></div></div>");  
             }
             
             $('#search-box').val('');

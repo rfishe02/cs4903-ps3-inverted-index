@@ -63,8 +63,9 @@ public class Search extends HttpServlet {
             BufferedReader br;
             String read;
             int i = 0;
-            int size = 4;
+            int size = 3;
             int wrds;
+            int lmt = 100;
             boolean flag = false;
             
             for(String name : res) {
@@ -73,38 +74,59 @@ public class Search extends HttpServlet {
                     out.print(name.trim()+",");
                     
                     br = new BufferedReader(new FileReader(inDir.getPath()+"/"+name.trim()));
+                    
                     wrds = 0;
-                    while((read=br.readLine())!=null && wrds < 100) {
+                    while(!prev.isEmpty()) {
+                        prev.remove();
+                    }
+                    flag = false;
+                    
+                    while((read=br.readLine())!=null && wrds < lmt) {
                     
                         if(flag) { 
-                            if(i < size-1) {
-                                out.print(read+",");
-                                i++;
+                        
+                            if(qSet.contains(read)) {
+                                out.print("<strong>"+read+"</strong>");
                             } else {
-                                out.print(read+"&nbsp;...&nbsp;");
+                                out.print(read);
+                            }
+                        
+                            if(i >= size || wrds >= lmt) {
+                                out.print("&nbsp;...&nbsp;");
                                 i = 0;
                                 flag = false;
+                            } else {  
+                                out.print(",");
+                                i++;
                             }
+                            
                             wrds++;
                         } else {
                         
-                            prev.add(read);
-                        
-                            if(prev.size() > size) {
-                                prev.remove();
-                            }
-                        
-                            if(qSet.contains(read) && prev.size() >= size) {
+                            if(qSet.contains(read)) {
                                 while(!prev.isEmpty()) {
                                     out.print(prev.remove()+",");
                                     wrds++;
                                 }
                             
+                                out.print("<strong>"+read+"</strong>");
+                                if(wrds >= lmt) {
+                                    out.print("&nbsp;...&nbsp;");
+                                } else {  
+                                    out.print(",");
+                                }
+                                
                                 flag = true;
-                            }
+                                wrds++;
+                            } else {
+                            
+                                prev.add(read);
                         
+                                if(prev.size() > size) {
+                                    prev.remove();
+                                }
+                            }
                         }
-                    
                     }
                     
                     out.print(" ");
