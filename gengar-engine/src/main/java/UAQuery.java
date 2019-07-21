@@ -49,11 +49,12 @@ public class UAQuery {
       HashMap<String,Integer> q = new HashMap<String,Integer>(1000);
 
       mapRowsCols(inDir,rafDir,termMap,docMap,q,query);
-      float[][] tdm = buildTDM(rafDir,termMap,docMap,q);
-
-      //printTDM(tdm);
-
-      result = getDocs(rafDir,docMap,tdm,5);
+      if(termMap.size() > 0 && docMap.size() > 0) {
+        float[][] tdm = buildTDM(rafDir,termMap,docMap,q);
+        result = getDocs(rafDir,docMap,tdm,10);
+      } else {
+        System.out.println("No results found.");
+      }
 
     } catch(IOException ex) {
       ex.printStackTrace();
@@ -73,16 +74,12 @@ public class UAQuery {
   */
 
   public void mapRowsCols(File inDir, File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashMap<String,Integer> q, String[] query) throws IOException {
-    System.out.println("mapping terms and documents to rows and columns.");
-
     RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","r");
     RandomAccessFile post = new RandomAccessFile(rafDir.getPath()+"/post.raf","r");
     RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","r");
-
     BufferedReader br;
     String read;
     String record;
-    float rtfidf;
     int row = 0;
     int col = 1; // Reserve first column for the query.
     int count;
@@ -90,6 +87,7 @@ public class UAQuery {
     int docID;
     int i;
     
+    System.out.println("mapping terms and documents to rows and columns.");
     Stemmer stem = new Stemmer();
 
     for(int a = 0; a < query.length; a++) {
@@ -103,34 +101,26 @@ public class UAQuery {
         record = dict.readUTF();
         i++;
       } while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(query[a]) != 0);
-
-      if(record.trim().compareToIgnoreCase(NA) != 0) {
       
-        if(!termMap.containsKey(query[a])) {
-          termMap.put(query[a],row);
-          row++;
-        } // Map terms to rows.
-        if(q.containsKey(query[a])) {
-          q.put(query[a],q.get(query[a])+1);
-        } else {
-          q.put(query[a],1);
-        }  // Count the frequency of terms in the query.
-
+      
+      if(record.trim().compareToIgnoreCase(NA) != 0) {
+        
         count = dict.readInt();
         start = dict.readInt();
-
-        post.seek(((start-count)+1) * POST_LEN);
+        
+      
+        post.seek(( (start+1)-count ) * POST_LEN);
         for(int x = 0; x < count; x++) {
         
           docID = post.readInt();
-          rtfidf = post.readFloat();          
           
-          if(rtfidf > 0.03) {
+          if(post.readFloat() > 0.001) {
           
             if(!docMap.containsKey(docID)) {
               docMap.put(docID,col);
               col++;
             } // Map document ID to a column.
+          
           
             map.seek(docID * (MAP_LEN + 2));
             br = new BufferedReader(new InputStreamReader(new FileInputStream( inDir.getPath()+"/"+map.readUTF().trim() ), "UTF8"));
@@ -143,13 +133,28 @@ public class UAQuery {
                 row++;
               }
             } // Open file & map terms within to columns.
+            
+            
             br.close();
-          
           } // Accept if rtf - idf is more than a certain amount.
 
         } // Read each posting for the term.
+    
+        
+        if(!termMap.containsKey(query[a])) {
+            termMap.put(query[a],row);
+            row++;
+        } // Map terms to rows.
+        if(q.containsKey(query[a])) {
+            q.put(query[a],q.get(query[a])+1);
+        } else {
+            q.put(query[a],1);
+        }  // Count the frequency of terms in the query.
+        
         
       }
+      
+      
     } // Map terms & documets to columns.
 
     dict.close();
@@ -165,8 +170,6 @@ public class UAQuery {
   */
 
   public float[][] buildTDM(File rafDir, HashMap<String,Integer> termMap, HashMap<Integer,Integer> docMap, HashMap<String,Integer> query) throws IOException {
-    System.out.println("building the term document matrix of "+termMap.size()+" x "+docMap.size()+" size");
-
     RandomAccessFile dict = new RandomAccessFile(rafDir.getPath()+"/dict.raf","r");
     RandomAccessFile post = new RandomAccessFile(rafDir.getPath()+"/post.raf","r");
     float[][] tdm = new float[termMap.size()][docMap.size()+1]; // Add the query column.
@@ -176,6 +179,8 @@ public class UAQuery {
     int start;
     int docID = 0;
     int i;
+    
+    System.out.println("building the term document matrix of "+termMap.size()+" x "+docMap.size()+" size");
 
     for( Map.Entry<String,Integer> entry : termMap.entrySet() ) {
     
@@ -186,15 +191,18 @@ public class UAQuery {
         i++;
       } while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(entry.getKey()) != 0);
 
+      
       if(record.trim().compareToIgnoreCase(NA) != 0) {
 
         count = dict.readInt();
         start = dict.readInt();
 
+        
         if( query.containsKey( entry.getKey() ) ) {
           tdm[ entry.getValue() ][ 0 ] = (float) ( query.get( entry.getKey() ) * Math.log(size / count) ); // Need to determine the correct value, ie: TF-IDF.
         }
 
+        
         post.seek(( (start+1)-count ) * POST_LEN);
         for(int x = 0; x < count; x++) {
           docID = post.readInt();
@@ -204,6 +212,7 @@ public class UAQuery {
             tdm[ entry.getValue() ][ docMap.get(docID) ] = rtfIDF;
           }
         } // Read each posting for the term.
+    
     
       }
       

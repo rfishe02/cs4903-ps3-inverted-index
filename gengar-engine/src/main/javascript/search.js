@@ -17,10 +17,30 @@ $(function() {
             
             $('#result').empty();
             
-            var spl = response.split(/\s+/);
-
-            for(a = 1; a < spl.length; a++) {
-                $('#result').append("<a href='"+spl[0]+"/"+spl[a]+"'>"+spl[a]+"</a><br>");
+            //$('#result').append("<p>"+response+"</p><br>");
+       
+            var links = response.split(/\s+/);
+            
+            if(links.length > 1) {
+             
+                for(a = 1; a < links.length; a++) {
+                    
+                    var text = links[a].split(",");
+                    $('#result').append("<a href='"+links[0]+"/"+text[0]+"'>"+text[0]+"</a><br>");
+                    
+                    var out = "";
+                    for(b = 1; b < text.length; b++) {
+                        out += text[b]+" ";
+                    }
+                    
+                    if(text.length > 0) {
+                        $('#result').append("<p>"+out+"</p><br>");   
+                    }
+                    
+                }
+                
+            } else {
+                $('#result').append("<p>"+response+"</p><br>");  
             }
             
             $('#search-box').val('');
