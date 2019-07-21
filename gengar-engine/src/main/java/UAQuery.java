@@ -88,8 +88,11 @@ public class UAQuery {
     int start;
     int docID;
     int i;
+    
+    Stemmer stem = new Stemmer();
 
     for(int a = 0; a < query.length; a++) {
+      query[a] = stem.stemString(out);
       query[a] = convertText(query[a],STR_LEN);
 
       i = 0;  // Find the term in the dictionary.
@@ -131,7 +134,6 @@ public class UAQuery {
           br = new BufferedReader(new InputStreamReader(new FileInputStream( inDir.getPath()+"/"+map.readUTF().trim() ), "UTF8"));
 
           while((read=br.readLine())!=null) {
-            read = read.replaceAll("[@\\.]", " ");
             read = convertText(read,STR_LEN);
 
             if(!termMap.containsKey(read)) {
@@ -310,28 +312,23 @@ public class UAQuery {
 
   /** */
 
-  public String convertText(Stemmer stem, String str, int limit) {
+  public String convertText(String s, int limit) {
     String out = "";
     int len;
+    
+    len = Math.min(s.length(),limit);
 
-    String[] spl = str.split("([\\s-&])+");
-    for(String s : spl) {
-      len = Math.min(s.length(),limit);
-
-      for(int i = 0; i < len; i++) {
+    for(int i = 0; i < len; i++) {
         if((int)s.charAt(i) > 127) {
-          out += "?";
+            out += "?";
         } else if ( (int)s.charAt(i) > 47 && (int)s.charAt(i) < 58 ||
-          (int)s.charAt(i) > 96 && (int)s.charAt(i) < 123 ) {
-          out += s.charAt(i);
+            (int)s.charAt(i) > 96 && (int)s.charAt(i) < 123 ) {
+            out += s.charAt(i);
         } else if( (int)s.charAt(i) > 64 && (int)s.charAt(i) < 91 ) {
-          out += (char)((int)s.charAt(i) + 32);
+            out += (char)((int)s.charAt(i) + 32);
         }
-      }
     }
-    
-    out = stem.stemString(str);
-    
+
     if(out.length() > 7) {
       out = out.substring(0,8);
     }
@@ -380,14 +377,8 @@ public class UAQuery {
   */
 
   /*
-  public static String formatString(Stemmer stem, String[] spl, String str) {
-    spl = str.split("([\\s-&])+");
-
-    str = "";
-    for(String s : spl) {
-      str += s;
-    }
-
+  public static String formatString(Stemmer stem, String str) {
+    
     str = stem.stemString(str);
     
     if(str.length() > 7) {

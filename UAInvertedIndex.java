@@ -84,7 +84,6 @@ public class UAInvertedIndex {
     int docID = 0;
     int totalFreq;
 
-    Stemmer stem = new Stemmer();
     String out;
 
     try {
@@ -100,8 +99,7 @@ public class UAInvertedIndex {
         while((read = br.readLine())!=null) {
 
           //read = new String(read.getBytes("US-ASCII"));
-          read = read.replaceAll("[@\\.]", " ");
-          read = convertText(stem,read,STR_LEN);
+          read = convertText(read,STR_LEN);
 
           if( ht.containsKey( read ) ) {
             ht.put( read, ht.get( read )+1);
@@ -440,28 +438,23 @@ public class UAInvertedIndex {
   @param limit
   */
 
-  public String convertText(Stemmer stem, String str, int limit) {
+  public static String convertText(String s, int limit) {
     String out = "";
     int len;
+    
+    len = Math.min(s.length(),limit);
 
-    String[] spl = str.split("([\\s-&])+");
-    for(String s : spl) {
-      len = Math.min(s.length(),limit);
-
-      for(int i = 0; i < len; i++) {
+    for(int i = 0; i < len; i++) {
         if((int)s.charAt(i) > 127) {
-          out += "?";
+            out += "?";
         } else if ( (int)s.charAt(i) > 47 && (int)s.charAt(i) < 58 ||
-          (int)s.charAt(i) > 96 && (int)s.charAt(i) < 123 ) {
-          out += s.charAt(i);
+            (int)s.charAt(i) > 96 && (int)s.charAt(i) < 123 ) {
+            out += s.charAt(i);
         } else if( (int)s.charAt(i) > 64 && (int)s.charAt(i) < 91 ) {
-          out += (char)((int)s.charAt(i) + 32);
+            out += (char)((int)s.charAt(i) + 32);
         }
-      }
     }
-    
-    out = stem.stemString(str);
-    
+
     if(out.length() > 7) {
       out = out.substring(0,8);
     }

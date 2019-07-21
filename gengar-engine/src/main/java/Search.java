@@ -30,7 +30,7 @@ public class Search extends HttpServlet {
       try {
 
         String query = request.getParameter("search-box");
-        String[] spl = query.split(" ");
+        String[] spl = query.split("([@\\.\\s-&])+");
    
         /*File inDir = new File( con.getResource("/home/srv-read/clean/output").toURI() );
         File rafDir = new File( con.getResource("/home/srv-read/ps3/output").toURI() );*/
