@@ -240,16 +240,18 @@ public class UAInvertedIndex {
         //System.out.println(top.substring(0,STR_LEN).trim());
 
         t = gh.get( top.substring(0,STR_LEN).trim() );
-        t.setStart(recordCount);  // Update the start field for the token in the global hash table.
-        //gh.put( t );
 
         rtf = (float) Double.parseDouble( top.substring( (STR_LEN+1 + DOCID_LEN), top.length() ) );
         idf = (float) Math.log( (double) size / t.getCount() ); // Calculate inverse document frequency for term from gh(t).numberOfDocuments .
 
+        t.setStart(recordCount);  // Update the start field for the token in the global hash table.
+        //gh.put( t );
+        
         post.writeInt( Integer.parseInt( top.substring(STR_LEN+1,STR_LEN+1 + DOCID_LEN).trim() ) ); // Write postings record for the token (documentID, termFrequency, OR rtf * idf) .
         post.writeFloat( rtf * idf );
-
+          
         recordCount = recordCount + 1;
+
       } // While all postings haven't been written do this.
 
       post.close();
@@ -288,13 +290,14 @@ public class UAInvertedIndex {
         start = gh.map[i].getStart();
       } else {
         term = NA;
-        count = 0;
-        start = 0;
+        count = -1;
+        start = -1;
       }
 
       dict.writeUTF( formatXString(term,STR_LEN) );
       dict.writeInt( count );
       dict.writeInt( start );
+      
     }
 
     dict.close();

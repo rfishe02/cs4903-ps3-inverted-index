@@ -9,6 +9,7 @@ public class TermData {
   public TermData(String term, int docCount) {
     this.term = term;
     this.docCount = docCount;
+    this.start = -9;
   }
 
   public String toString() {
