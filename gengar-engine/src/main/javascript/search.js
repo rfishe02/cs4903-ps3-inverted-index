@@ -28,12 +28,12 @@ $(function() {
                     var text = links[a].split(",");
                     
                     var out = "";
-                    for(b = 1; b < text.length; b++) {
+                    for(b = 3; b < text.length; b++) {
                         out += text[b]+" ";
                     }
                     
                     if(out.length > 0) {
-                        $('#result-row').append("<div class='col-12 mb-4'><div class='card h-100 shadow-sm'><div class='card-body'><br><h5 class='card-title'><a href='"+links[0]+"/"+text[0]+"'>"+text[0]+"</a></h5><p class='card-text'>"+out+"</p><br></div></div></div>");
+                        $('#result-row').append("<div class='col-12 mb-4'><div class='card h-100 shadow-sm'><div class='card-body'><h5 class='card-title mb-3'>Document #"+text[1]+"</h5><h6 class='card-subtitle text-muted mb-4'>"+text[2]+"</h6><p class='card-text mb-4'>"+out+"</p><a href='"+links[0]+"/"+text[0]+"' class='card-link'>"+text[0]+"</a></div></div></div>");
                     }
    
                 }
@@ -41,7 +41,7 @@ $(function() {
                 $('#result-row').append("</div>");
                 
             } else {
-                $('#result').append("<div div class='row justify-content-center align-items-center mt-4 h-100'><div class='col-12 mb-5' style='padding-top: 115px;'><p class='display-2 text-muted text-center'>"+response+"</p></div></div>");  
+                $('#result').append("<div div class='row justify-content-center align-items-center mt-4 h-100'><div class='col-12 mb-4 ' style='padding-top: 150px;'><p class='display-2 text-muted text-center'>"+response+"</p></div></div>");  
             }
             
             $('#search-box').val('');

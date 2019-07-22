@@ -50,6 +50,7 @@ public class Search extends HttpServlet {
         UAQuery query = new UAQuery(rafDir,"stats.raf");
         String[] res = query.runQuery(inDir,rafDir,spl);
     
+        
         if(res != null) {
         
             out.print("resources/input ");
@@ -73,7 +74,7 @@ public class Search extends HttpServlet {
                 
                     out.print(name.trim()+",");
                     
-                    br = new BufferedReader(new FileReader(inDir.getPath()+"/"+name.trim()));
+                    br = new BufferedReader(new FileReader(inDir.getPath()+"/"+name.split(",")[0]));
                     
                     wrds = 0;
                     while(!prev.isEmpty()) {

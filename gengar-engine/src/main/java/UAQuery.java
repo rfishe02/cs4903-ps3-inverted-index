@@ -94,7 +94,18 @@ public class UAQuery {
     
       query[a] = stem.stemString(query[a]);
       query[a] = convertText(query[a],STR_LEN);
-
+      
+      if(!termMap.containsKey(query[a])) {
+        termMap.put(query[a],row);
+        row++;
+      } // Map terms to rows.
+       if(q.containsKey(query[a])) {
+        q.put(query[a],q.get(query[a])+1);
+      } else {
+        q.put(query[a],1);
+      }  // Count the frequency of terms in the query.
+    
+    
       i = 0;  // Find the term in the dictionary.
       do {
         dict.seek( hash(query[a],i,seed) * (DICT_LEN + 2) );
@@ -107,8 +118,7 @@ public class UAQuery {
         
         count = dict.readInt();
         start = dict.readInt();
-        
-      
+   
         post.seek(( (start+1)-count ) * POST_LEN);
         for(int x = 0; x < count; x++) {
         
@@ -134,26 +144,12 @@ public class UAQuery {
               }
             } // Open file & map terms within to columns.
             
-            
             br.close();
           } // Accept if rtf - idf is more than a certain amount.
 
         } // Read each posting for the term.
-    
-        
-        if(!termMap.containsKey(query[a])) {
-            termMap.put(query[a],row);
-            row++;
-        } // Map terms to rows.
-        if(q.containsKey(query[a])) {
-            q.put(query[a],q.get(query[a])+1);
-        } else {
-            q.put(query[a],1);
-        }  // Count the frequency of terms in the query.
-        
         
       }
-      
       
     } // Map terms & documets to columns.
 
@@ -183,7 +179,7 @@ public class UAQuery {
     System.out.println("building the term document matrix of "+termMap.size()+" x "+docMap.size()+" size");
 
     for( Map.Entry<String,Integer> entry : termMap.entrySet() ) {
-    
+
       i = 0;
       do {
         dict.seek( hash(entry.getKey(),i,seed) * (DICT_LEN + 2) );
@@ -197,12 +193,6 @@ public class UAQuery {
         count = dict.readInt();
         start = dict.readInt();
 
-        
-        if( query.containsKey( entry.getKey() ) ) {
-          tdm[ entry.getValue() ][ 0 ] = (float) ( query.get( entry.getKey() ) * Math.log(size / count) ); // Need to determine the correct value, ie: TF-IDF.
-        }
-
-        
         post.seek(( (start+1)-count ) * POST_LEN);
         for(int x = 0; x < count; x++) {
           docID = post.readInt();
@@ -212,10 +202,13 @@ public class UAQuery {
             tdm[ entry.getValue() ][ docMap.get(docID) ] = rtfIDF;
           }
         } // Read each posting for the term.
-    
-    
+
+        if( query.containsKey( entry.getKey() ) ) {
+          tdm[ entry.getValue() ][ 0 ] = (float) ( query.get( entry.getKey() ) * Math.log(size / count) ); // Need to determine the correct value, ie: TF-IDF.
+        }
+        
       }
-      
+
     }
     dict.close();
     post.close();
@@ -230,23 +223,23 @@ public class UAQuery {
   */
 
   public String[] getDocs(File rafDir, HashMap<Integer,Integer> docMap, float[][] tdm, int k)  throws IOException {
-    System.out.println("finding relevant documents.");
-
     RandomAccessFile map = new RandomAccessFile(rafDir.getPath()+"/map.raf","r");
     PriorityQueue<Result> pq = new PriorityQueue<Result>( new ResultComparator() );
     String[] res = new String[k];
+    
+    System.out.println("finding relevant documents.");
 
     for( Map.Entry<Integer,Integer> entry : docMap.entrySet() ) {
       map.seek( entry.getKey() * (MAP_LEN + 2) );
-      pq.add( new Result( calcCosineSim(tdm, entry.getValue(), 0), map.readUTF() ) );
+      pq.add( new Result( map.readUTF(), entry.getKey(), calcCosineSim(tdm,entry.getValue(),0) ) );
     }
 
     Result r;
     int j = 0;
     while(j < k && !pq.isEmpty()) {
       r = pq.remove();
-      res[j] = r.name;
-      System.out.println(r.name+" "+r.score);
+      res[j] = r.name.trim()+","+r.id+","+r.score;
+      System.out.println(r.name+" "+r.id+" "+r.score);
       j++;
     }
 
@@ -328,12 +321,14 @@ public class UAQuery {
   /** */
 
   static class Result {
-    float score;
     String name;
+    float score;
+    int id;
 
-    public Result(float score, String name) {
-      this.score = score;
+    public Result(String name, int id, float score) {
       this.name = name;
+      this.id = id;
+      this.score = score;
     }
   }
 
