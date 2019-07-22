@@ -16,6 +16,7 @@ $(function() {
         }).done(function(response) {
             
             $('#result').empty();
+            $('#result-pages').empty();
             var links = response.split(/\s+/);
             
             if(links.length > 1) {
