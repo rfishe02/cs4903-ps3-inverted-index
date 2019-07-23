@@ -75,8 +75,6 @@ public class UAInvertedIndex {
   */
 
   public static int algoOne(File inDir, File outDir, File tmpDir) {
-    System.out.println("running first pass.");
-
     SortedMap<String, Integer> ht;  // Used to sort all ht entries by term alphabetically.
     BufferedReader br;
     BufferedWriter bw = null;
@@ -84,8 +82,8 @@ public class UAInvertedIndex {
     int docID = 0;
     int totalFreq;
 
-    String out;
-
+    System.out.println("running first pass.");
+    
     try {
       RandomAccessFile map = new RandomAccessFile(outDir.getPath()+"/map.raf","rw");
       map.seek(0);
