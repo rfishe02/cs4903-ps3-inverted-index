@@ -24,11 +24,27 @@ public class UAQueryTest {
     File inDir = new File(args[0]);
     File rafDir = new File(args[1]);
     
-    String[] query = new String[args.length-2];
+    String[] spl;
+    int count = 0;
+    
+    for(int i = 2; i < args.length; i++) {
+      spl = args[i].split("([\\s\\.&-])+");
+      
+      for(String s : spl) {
+        count++;
+      }
+    }
+    
+    String[] query = new String[count];
     int j = 0;
     for(int i = 2; i < args.length; i++) {
-        query[j] = args[i];
-        j++;
+        spl = args[i].split("([\\s\\.&-])+");
+        
+        for(String s : spl) {
+          query[j] = s;
+          j++;
+        }
+    
     }
 
     UAQuery q = new UAQuery(rafDir,"stats.raf");
