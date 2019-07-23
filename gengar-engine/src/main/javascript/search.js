@@ -9,14 +9,19 @@ $(function() {
     $(form).submit(function(event) {
         event.preventDefault(); // Stop the browser from submitting the form.
 
+        var data = form.serialize();
+        
+        $('#search-box').val('');
+        $('#result').empty();
+        $('#result').append("<div div class='row justify-content-center align-items-center mt-4 h-100'><div class='col-12 mb-4 ' style='padding-top: 150px;'><p class='display-2 text-muted text-center'>...</p></div></div>");
+        
         $.ajax({
             type: form.attr("method"),
             url: form.attr("action"),
-            data: form.serialize()
+            data: data
         }).done(function(response) {
             
             $('#result').empty();
-            $('#result-pages').empty();
             var links = response.split(/\s+/);
             
             if(links.length > 1) {
@@ -43,9 +48,7 @@ $(function() {
             } else {
                 $('#result').append("<div div class='row justify-content-center align-items-center mt-4 h-100'><div class='col-12 mb-4 ' style='padding-top: 150px;'><p class='display-2 text-muted text-center'>"+response+"</p></div></div>");  
             }
-            
-            $('#search-box').val('');
-            
+       
         }).fail(function(data) {
             
             if (data.responseText !== '') {
