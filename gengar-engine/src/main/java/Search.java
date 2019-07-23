@@ -46,7 +46,7 @@ public class Search extends HttpServlet {
         
         File inDir = new File( "/home/srv-read/clean/output" );
         File rafDir = new File( "/home/srv-read/ps3/output" );
-        
+
         UAQuery query = new UAQuery(rafDir,"stats.raf");
         String[] res = query.runQuery(inDir,rafDir,spl);
     

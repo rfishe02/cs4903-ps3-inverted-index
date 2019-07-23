@@ -90,7 +90,8 @@ public class UAQuery {
     System.out.println("mapping terms and documents to rows and columns.");
     Stemmer stem = new Stemmer();
 
-    for(int a = 0; a < query.length; a++) {
+    int end = Math.min(query.length,12);
+    for(int a = 0; a < end; a++) {
     
       query[a] = stem.stemString(query[a]);
       query[a] = convertText(query[a],STR_LEN);

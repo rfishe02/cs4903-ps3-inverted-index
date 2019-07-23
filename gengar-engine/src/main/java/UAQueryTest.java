@@ -34,7 +34,7 @@ public class UAQueryTest {
         count++;
       }
     }
-    
+
     String[] query = new String[count];
     int j = 0;
     for(int i = 2; i < args.length; i++) {
@@ -44,7 +44,6 @@ public class UAQueryTest {
           query[j] = s;
           j++;
         }
-    
     }
 
     UAQuery q = new UAQuery(rafDir,"stats.raf");
