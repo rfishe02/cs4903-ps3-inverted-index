@@ -318,7 +318,7 @@ public class UAInvertedIndex {
     int size;
 
     File[] A = inDir.listFiles();
-    int len = Math.min(500,(int)Math.sqrt(A.length));
+    int len = Math.min(500,(int)Math.log(A.length,2));
 
     try {
       for(int c = 1; c < n; c = 2 * c) {
