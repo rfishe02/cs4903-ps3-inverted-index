@@ -365,10 +365,11 @@ class Stemmer {
     i_end = k+1; i = 0;
   }
 
-/** Test method for demonstrating the Stemmer.  It reads text from a
+/** Test program for demonstrating the Stemmer.  It reads text from a
   * a list of files, stems each word, and writes the result to standard
   * output. Note that the word stemmed is expected to be in lower case:
   * forcing lower case must be done outside the Stemmer class.
+  * Usage: Stemmer file-name file-name ...
   */
 
   public void stemFiles(File[] files) {
@@ -430,7 +431,7 @@ class Stemmer {
 
   }
 
-  /** A method that applies the Porter Stemmer to an input String. This input String should be lower case.
+  /** This method performs the Porter Stemmer algorithm on an input String.
   @param str An input String.
   @return A stemmed String.
   */
@@ -461,7 +462,9 @@ class Stemmer {
           y = 0;
         }
 
-        u+= ch;
+        if( !Character.isLetter(ch) ) {
+          u+= ch;
+        }
 
       } else if ( Character.isLetter(ch) ) {
         ch = Character.toLowerCase(ch);
@@ -472,7 +475,7 @@ class Stemmer {
       x++;
     }
 
-    //System.out.println("["+str +"] ["+u+"]");
+    //System.out.println("["+str+"] ["+u+"]");
     return u;
   }
 
