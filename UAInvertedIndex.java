@@ -54,10 +54,10 @@ public class UAInvertedIndex {
     }
   }
 
-  /** 
-  @param inDir
-  @param outDir
-  @param stat
+  /** This method calls the method 
+  @param inDir A directory of tokenized files.
+  @param outDir The destination directory for the random access files.
+  @param stat A random access file used to write statistics used by the UAQuery class.
   */
 
   public static void buildInvertedIndex(File inDir, File outDir, RandomAccessFile stat) throws IOException {

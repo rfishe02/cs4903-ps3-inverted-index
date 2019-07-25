@@ -430,9 +430,9 @@ class Stemmer {
 
   }
 
-  /** 
-  @param str
-  @return
+  /** A method that applies the Porter Stemmer to an input String. This input String should be lower case.
+  @param str An input String.
+  @return A stemmed String.
   */
 
   public String stemString(String str) {

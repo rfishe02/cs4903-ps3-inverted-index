@@ -1,6 +1,5 @@
 
 public class TermData {
-
   private String term;
   private int docCount;
   private int start;
