@@ -449,6 +449,12 @@ class Stemmer {
     while(x < 500 && x < str.length()) {
       ch = str.charAt(x);
 
+      if ( Character.isLetter(ch) ) {
+        ch = Character.toLowerCase(ch);
+        w[y] = ch;
+        y++;
+      }
+
       if( x == str.length()-1 || !Character.isLetter(ch) ) {
 
         if(y > 0) {
@@ -466,10 +472,6 @@ class Stemmer {
           u+= ch;
         }
 
-      } else if ( Character.isLetter(ch) ) {
-        ch = Character.toLowerCase(ch);
-        w[y] = ch;
-        y++;
       }
 
       x++;
