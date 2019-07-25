@@ -1,10 +1,23 @@
 
+/** */
+
 public class GlobalMap {
   TermData[] map;
+
+  /**
+  @param size
+  */
 
   public GlobalMap(int size) {
     this.map = new TermData[size];
   }
+
+  /**
+  @param str
+  @param i
+  @param n
+  @return
+  */
 
   public static int hash(String str, int i, int n) {
     return ( Math.abs(str.hashCode()) + i ) % n;
@@ -20,6 +33,12 @@ public class GlobalMap {
       }
     }
   }
+
+  /**
+  @param m
+  @param t
+  @return
+  */
 
   public boolean add(TermData[] m, TermData t) {
     int h;
@@ -40,6 +59,11 @@ public class GlobalMap {
     return false;
   }
 
+  /**
+  @param str
+  @return
+  */
+
   public TermData get(String str) {
     int h;
 
@@ -58,6 +82,10 @@ public class GlobalMap {
     return null;
 
   }
+
+  /**
+  @param inc
+  */
 
   public void resizeTable(double inc) {
     TermData[] newMap = new TermData[ (int)(this.map.length*inc) + 1 ];

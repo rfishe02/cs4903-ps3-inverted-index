@@ -365,52 +365,51 @@ class Stemmer {
     i_end = k+1; i = 0;
   }
 
-/** Test program for demonstrating the Stemmer.  It reads text from a
+/** Test method for demonstrating the Stemmer.  It reads text from a
   * a list of files, stems each word, and writes the result to standard
   * output. Note that the word stemmed is expected to be in lower case:
   * forcing lower case must be done outside the Stemmer class.
-  * Usage: Stemmer file-name file-name ...
   */
 
   public void stemFiles(File[] files) {
     char[] w = new char[501];
     //Stemmer s = new Stemmer();
-    
+
     try {
-    
+
       for(File f : files) {
-      
+
         FileInputStream in = new FileInputStream(f);
-        
+
         while(true) {
           int ch = in.read();
-                    
+
           if (Character.isLetter((char) ch)) {
             int j = 0;
-                        
+
             while(true) {
               ch = Character.toLowerCase((char) ch);
               w[j] = (char) ch;
-                        
-              if (j < 500) 
+
+              if (j < 500)
                 j++;
               ch = in.read();
-                
+
               if (!Character.isLetter((char) ch)) {
 
                 /* to test add(char ch) */
                 /* or, to test add(char[] w, int j)
                    s.add(w, j); */
-            
-                for (int c = 0; c < j; c++) 
-                  this.add(w[c]); 
+
+                for (int c = 0; c < j; c++)
+                  this.add(w[c]);
 
                 this.stem();
-                {  
+                {
                   /* and now, to test toString() : */
                   /* to test getResultBuffer(), getResultLength() :
                      u = new String(s.getResultBuffer(), 0, s.getResultLength()); */
-                   
+
                   String u = this.toString();
                   System.out.print(u);
                 }
@@ -418,58 +417,63 @@ class Stemmer {
               }
             } // End while loop.
           }
-          if (ch < 0) 
+          if (ch < 0)
           break;
           System.out.print((char)ch);
         } // End while loop.
       }
-    
+
     } catch(IOException ex) {
       ex.printStackTrace();
       System.exit(1);
     }
 
   }
-  
+
+  /** 
+  @param str
+  @return
+  */
+
   public String stemString(String str) {
     char[] w = new char[501];
     String u = "";
     char ch;
-    
+
     int x = 0;
     int y = 0;
-    
+
     //System.out.println(str);
-    
+
     while(x < 500 && x < str.length()) {
       ch = str.charAt(x);
- 
+
       if( x == str.length()-1 || !Character.isLetter(ch) ) {
 
         if(y > 0) {
           for(int c = 0; c < y; c++) {
             add(w[c]);
           }
-        
+
           stem();
           u+= this.toString();
-          
+
           y = 0;
         }
-        
+
         u+= ch;
-        
+
       } else if ( Character.isLetter(ch) ) {
         ch = Character.toLowerCase(ch);
         w[y] = ch;
         y++;
-      } 
-      
+      }
+
       x++;
     }
-    
+
     //System.out.println("["+str +"] ["+u+"]");
     return u;
   }
-    
+
 }

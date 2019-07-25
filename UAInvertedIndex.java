@@ -7,20 +7,20 @@ import java.util.Map;
 import java.util.Comparator;
 import java.nio.charset.*;
 
-/*
-  Consider removing termID from application if you do not intend to use it.
-*/
+/** A class used to build an inverted index from a list of tokenized files. */
 
 public class UAInvertedIndex {
-
   static final String NA = "NULL";
   static final int DOCID_LEN = 5;
   static final int STR_LEN = 8;
   static final int MAP_LEN = 25;
   static GlobalMap gh;
   static int seed = 5000000;
-
   static final int RTF_LEN = 8; //0.029304
+
+  /**
+  @param args Accepts the following arugment from the command line: <input tokenized files> <output for random access files>.
+  */
 
   public static void main(String[] args) {
     if(args.length < 1) {
@@ -54,9 +54,10 @@ public class UAInvertedIndex {
     }
   }
 
-  /**
+  /** 
   @param inDir
   @param outDir
+  @param stat
   */
 
   public static void buildInvertedIndex(File inDir, File outDir, RandomAccessFile stat) throws IOException {
@@ -65,13 +66,13 @@ public class UAInvertedIndex {
     algoTwo(new File("tmp"),outDir,size);
 
     stat.writeInt(size);
-
   }
 
   /**
   @param inDir
   @param outDir
   @param tmpDir
+  @return
   */
 
   public static int algoOne(File inDir, File outDir, File tmpDir) {
@@ -83,7 +84,7 @@ public class UAInvertedIndex {
     int totalFreq;
 
     System.out.println("running first pass.");
-    
+
     try {
       RandomAccessFile map = new RandomAccessFile(outDir.getPath()+"/map.raf","rw");
       map.seek(0);
@@ -244,10 +245,10 @@ public class UAInvertedIndex {
 
         t.setStart(recordCount);  // Update the start field for the token in the global hash table.
         //gh.put( t );
-        
+
         post.writeInt( Integer.parseInt( top.substring(STR_LEN+1,STR_LEN+1 + DOCID_LEN).trim() ) ); // Write postings record for the token (documentID, termFrequency, OR rtf * idf) .
         post.writeFloat( rtf * idf );
-          
+
         recordCount = recordCount + 1;
 
       } // While all postings haven't been written do this.
@@ -295,7 +296,7 @@ public class UAInvertedIndex {
       dict.writeUTF( formatXString(term,STR_LEN) );
       dict.writeInt( count );
       dict.writeInt( start );
-      
+
     }
 
     dict.close();
@@ -433,17 +434,17 @@ public class UAInvertedIndex {
       return s1.compareToIgnoreCase(s2);
     }
   }
-  
+
   /**
-  @param stem 
-  @param str 
+  @param s
   @param limit
+  @return
   */
 
   public static String convertText(String s, int limit) {
     String out = "";
     int len;
-    
+
     len = Math.min(s.length(),limit);
 
     for(int i = 0; i < len; i++) {
@@ -460,13 +461,14 @@ public class UAInvertedIndex {
     if(out.length() > 7) {
       out = out.substring(0,8);
     }
-    
+
     return out;
   }
 
   /**
   @param str
   @param limit
+  @return
   */
 
   public static String formatString(String str, int limit) {
@@ -481,6 +483,7 @@ public class UAInvertedIndex {
   @param limit
   @param id
   @param rtf
+  @return
   */
 
   public static String formatString(String str, int limit, int id, double rtf) {
@@ -493,6 +496,7 @@ public class UAInvertedIndex {
   /**
   @param str
   @param limit
+  @return
   */
 
   public static String formatXString(String str, int limit) {
