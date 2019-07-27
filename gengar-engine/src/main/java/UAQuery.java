@@ -331,9 +331,6 @@ public class UAQuery {
     return out;
   }
 
-  /** Prints the term-document matrix.
-  */
-
   public void printTDM(float[][] tdm) {
     for(int a = 0; a < tdm.length; a++) {
       System.out.printf("[ %-3s ] ",a);

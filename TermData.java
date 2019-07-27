@@ -1,4 +1,8 @@
 
+/**
+An object that stores term data in the global hash table.
+*/
+
 public class TermData {
   private String term;
   private int docCount;

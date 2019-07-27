@@ -19,7 +19,7 @@ public class UAInvertedIndex {
   static final int RTF_LEN = 8; //0.029304
 
   /**
-  @param args Accepts the following arugment from the command line: <input tokenized files> <output for random access files>.
+  @param args Accepts the following arugment from the command line: [input tokenized files] [output for random access files].
   */
 
   public static void main(String[] args) {
@@ -54,10 +54,11 @@ public class UAInvertedIndex {
     }
   }
 
-  /** This method calls the method 
+  /** This method coordinates the construction of the inverted index. It calls three methods
+  that each perform a different task.
   @param inDir A directory of tokenized files.
   @param outDir The destination directory for the random access files.
-  @param stat A random access file used to write statistics used by the UAQuery class.
+  @param stat A random access file used to write statistics that will be used by the UAQuery class.
   */
 
   public static void buildInvertedIndex(File inDir, File outDir, RandomAccessFile stat) throws IOException {
@@ -68,11 +69,14 @@ public class UAInvertedIndex {
     stat.writeInt(size);
   }
 
-  /**
-  @param inDir
-  @param outDir
-  @param tmpDir
-  @return
+  /** This method is the first part of an algorithm that constructs a linked list.
+  For each document, it counts the frequencies of all terms in the document while it
+  arranges distinct terms in sorted order. Afterwards, it writes the terms to the hard drive
+  in sorted order, as temporary files. It also creates the map.raf file.
+  @param inDir An input directory of tokenized files.
+  @param outDir The output directory for random access files.
+  @param tmpDir The output directory for the temporary files.
+  @return The number of documents processed by the method.
   */
 
   public static int algoOne(File inDir, File outDir, File tmpDir) {
@@ -128,11 +132,13 @@ public class UAInvertedIndex {
     return docID;
   }
 
-  /**
-  @param bw
-  @param ht
-  @param docID
-  @param totalFreq
+  /** This method writes sorted files to a temporary directory. It also increments the
+  count for each term in the Map that's present in the global hash table,
+  which is the document count for that particular term.
+  @param bw The BufferedWriter linked to the temporary directory.
+  @param ht A data structure that has terms in sorted order.
+  @param docID The document ID for the current document.
+  @param totalFreq The total number of tokens in the document.
   */
 
   public static void writeTempFile(BufferedWriter bw, SortedMap<String, Integer> ht, int docID, int totalFreq) throws IOException {
@@ -159,10 +165,12 @@ public class UAInvertedIndex {
 
   }
 
-  /**
-  @param inDir
-  @param outDir
-  @param size
+  /** This method creates the post.raf and dictionary file. It takes a directory of merged files
+  and combines them into a postings file. Aftwards, the method writes the global hash table to the
+  hard drive in hash order as the dictionary file.
+  @param inDir A directory of merged files.
+  @param outDir The directory for the random access files.
+  @param size The total number of documents.
   */
 
   public static void algoTwo(File inDir, File outDir, int size) {
@@ -267,8 +275,10 @@ public class UAInvertedIndex {
     }
   }
 
-  /**
-  @param outDir
+  /**  This method writes the dictionary file to disk. It iterates over the global
+  hash map and writes every term, including null terms, as a fixed length String.
+  This implementation does not support characters that are more than a single byte.
+  @param outDir The output directory for the random access files.
   */
 
   public static void writeDictionary(File outDir) throws IOException {
@@ -306,8 +316,8 @@ public class UAInvertedIndex {
       directly from the bottom up sort shown on Wikipedia. However, the merge
       portion is different from the example on the website. It doesn't iterate over
       the array, it just uses the values p and q to combine files.
-      @param inDir
-      @param n
+      @param inDir A directory of sorted, temporary, files.
+      @param n The number files in the temporary directory.
   */
 
   public static void mergeSort(File inDir, int n) {
@@ -319,7 +329,7 @@ public class UAInvertedIndex {
     int size;
 
     File[] A = inDir.listFiles();
-    int len = Math.min(500,(int)Math.log(A.length,2));
+    int len = Math.min( 500, (int)Math.log(A.length) );
 
     try {
       for(int c = 1; c < n; c = 2 * c) {
@@ -349,21 +359,16 @@ public class UAInvertedIndex {
   /** Instead of iterating accross the whole array, it opens the files at p and q+1,
      and merges them. It erases the previous files and stores the new file at A[p].
 
-     If we have five files, it may merge files until it merges the
-     files at index 0 and 4. The last merge creates a file that holds the data of all
-     other files.
-
-     p: 0  q: 1 --> merge the files at index zero and one.
-     p: 2  q: 3 --> merge the files at index two and three.
-     p: 0  q: 2 --> merge the files at index zero and two.
-     p: 0  q: 4 --> merge the files at index zero and four.
-     @param A
-     @param L
-     @param R
-     @param bw
-     @param p
-     @param q
-     @param r
+     For example, suppose we have five files. First, it would merge the files at index 0 and 1.
+     Then, it would merge the files at 2 and 3. Now, the size of the segment will grow. The method
+     would merge file 0 and file 2. Last, the method would merge file 0 and 4.
+     @param A The array of sorted, temporary, files.
+     @param L A file at location p.
+     @param R A file at location z.
+     @param bw A new file that will contain the two files from L and R.
+     @param p The leftmost file.
+     @param q The rightmost file.
+     @param r Not used in sort, but provides additional information for filename.
   */
 
   public static void merge(File[] A, BufferedReader L, BufferedReader R, BufferedWriter bw, int p, int q, int r) throws IOException {
@@ -424,9 +429,7 @@ public class UAInvertedIndex {
     A[p] = new File(filename); // Replace the file at A[p]. Future merges will use the newly merged file.
   }
 
-  /**
-  @param s1
-  @param s2
+  /** The comparator used to arrange terms in the TreeMap.
   */
 
   static class TermComparator implements Comparator<String> {
@@ -435,10 +438,11 @@ public class UAInvertedIndex {
     }
   }
 
-  /**
-  @param s
-  @param limit
-  @return
+  /** A method used to perform normalization on Strings. It replaces non-ASCII characters with
+  single byte characters.
+  @param s An input String.
+  @param limit The final size of the output String.
+  @return A normalized String.
   */
 
   public static String convertText(String s, int limit) {
@@ -465,10 +469,11 @@ public class UAInvertedIndex {
     return out;
   }
 
-  /**
-  @param str
-  @param limit
-  @return
+  /** A method used to format a String record. It trims Strings to a particular length, and
+  pads the output String with spaces. This is used to format records for the map.raf file.
+  @param str An input String.
+  @param limit The final size of the output String.
+  @return A formatted String.
   */
 
   public static String formatString(String str, int limit) {
@@ -478,12 +483,13 @@ public class UAInvertedIndex {
     return String.format("%-"+limit+"s",str);
   }
 
-  /**
-  @param str
-  @param limit
-  @param id
-  @param rtf
-  @return
+  /** A method used to format the records for the temporary files. This application uses
+  a substring to compare terms, so it's necessary to write formatted records.
+  @param str An input String.
+  @param limit The final size of the output String.
+  @param id A document ID.
+  @param rtf The relative frequency of a term.
+  @return A formatted String.
   */
 
   public static String formatString(String str, int limit, int id, double rtf) {
@@ -493,10 +499,10 @@ public class UAInvertedIndex {
     return String.format("%-"+STR_LEN+"s %-"+DOCID_LEN+"d %-"+(RTF_LEN/2)+"."+(RTF_LEN/2)+"f",str,id,rtf);
   }
 
-  /**
-  @param str
-  @param limit
-  @return
+  /** The method used to format the String of the dictionary file.
+  @param str An input String.
+  @param limit The final size of the output String.
+  @return A formatted String.
   */
 
   public static String formatXString(String str, int limit) {
