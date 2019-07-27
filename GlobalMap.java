@@ -1,4 +1,11 @@
 
+/********************************
+Name: Renae Fisher
+Username: text05
+Problem Set: PS3
+Due Date: 7/15/19
+********************************/
+
 /** This class holds the logic used to maintain the global hash table. */
 
 public class GlobalMap {

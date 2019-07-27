@@ -1,4 +1,11 @@
 
+/********************************
+Name: Renae Fisher
+Username: text05
+Problem Set: PS3
+Due Date: 7/15/19
+********************************/
+
 /**
 An object that stores term data in the global hash table.
 */
