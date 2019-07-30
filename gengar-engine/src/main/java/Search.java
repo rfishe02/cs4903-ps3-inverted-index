@@ -15,10 +15,13 @@ The servlet that conducts a search for a query from the web interface.
 //@WebServlet("/search")
 public class Search extends HttpServlet {
 
+   /*
    public void init() throws ServletException {
 
-   }
+   }*/
 
+   /** The method GET is not unsupported for this application. */
+   
    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
       response.setContentType("text/html");
@@ -158,8 +161,9 @@ public class Search extends HttpServlet {
       out.close();
    }
 
+   /*
    public void destroy() {
 
-   }
+   }*/
 
 }
