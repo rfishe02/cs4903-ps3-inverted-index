@@ -20,7 +20,7 @@ public class GlobalMap {
   }
 
   /** A method used to create a hashcode for a given term. It uses the formula for a linear probe.
-  @param str A term  that may be converted to a hash code.
+  @param str A term that may be converted to a hash code.
   @param i An index.
   @param n The size of the hash table.
   @return A hashcode for a given term.
@@ -30,9 +30,8 @@ public class GlobalMap {
     return ( Math.abs(str.hashCode()) + i ) % n;
   } // h(k,i) = (h'(k) + i) mod m
 
-  /** The method used to add a term object to the global hash table.
-  If the add method is unsuccessful, it will resize the hash table and
-  make another attempt.
+  /** The method used to add a term object to the global hash table. If the add method is unsuccessful,
+  it will resize the hash table and make another attempt.
   @param t An object that holds the term and its document count.
    */
 
@@ -47,8 +46,8 @@ public class GlobalMap {
     }
   }
 
-  /** This method attempts to add an object to the global hash table. If the object already exists,
-  it merely repleces the object.
+  /** This method attempts to add an object to the global hash table.
+  If the object already exists, it merely repleces the object.
   @param m The term data array where the term object will be hashed to.
   @param t An object that holds the term and its document count.
   @return A value that indicates success or failure.

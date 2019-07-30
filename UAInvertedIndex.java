@@ -14,7 +14,8 @@ import java.util.Map;
 import java.util.Comparator;
 import java.nio.charset.*;
 
-/** A class used to build an inverted index from a list of tokenized files. */
+/** A class that builds an inverted index from a directory of tokenized files.
+Each file must have a single token on each line. */
 
 public class UAInvertedIndex {
   static final String NA = "NULL";
@@ -26,39 +27,42 @@ public class UAInvertedIndex {
   static final int RTF_LEN = 8; //0.029304
 
   /**
-  @param args Accepts the following arugment from the command line: [input tokenized files] [output for random access files].
+  @param args Accepts the following arugments from the command line: [input tokenized files] [output for random access files].
   */
 
   public static void main(String[] args) {
-    if(args.length < 1) {
-      seed = 90000;
-      args = new String[2];
-      args[0] = "./input2";
-      args[1] = "./output";
-    }/*************************************************************************/
 
-    try {
-      File inDir = new File(args[0]);
-      File outDir = new File(args[1]);
+    if(args == null || args.length < 2) {
 
-      RandomAccessFile stat = new RandomAccessFile(outDir.getPath()+"/stats.raf","rw");
-      stat.seek(0);
-      stat.writeUTF(NA);
+      System.out.println("the application requires the arguments: [input dir.] [output dir.]");
 
-      gh = new GlobalMap(seed); // Initialize global hash table.
-      buildInvertedIndex(inDir,outDir,stat);
+    } else {
 
-      stat.writeInt( STR_LEN );
-      stat.writeInt( MAP_LEN );
-      stat.writeInt( 2 );
-      stat.writeInt( 2 );
-      stat.writeInt(gh.map.length);
-      stat.close();
+      try {
+        File inDir = new File(args[0]);
+        File outDir = new File(args[1]);
 
-    } catch(IOException ex) {
-      ex.printStackTrace();
-      System.exit(1);
+        RandomAccessFile stat = new RandomAccessFile(outDir.getPath()+"/stats.raf","rw");
+        stat.seek(0);
+        stat.writeUTF(NA);
+
+        gh = new GlobalMap(seed); // Initialize global hash table.
+        buildInvertedIndex(inDir,outDir,stat);
+
+        stat.writeInt( STR_LEN );
+        stat.writeInt( MAP_LEN );
+        stat.writeInt( 2 );
+        stat.writeInt( 2 );
+        stat.writeInt(gh.map.length);
+        stat.close();
+
+      } catch(IOException ex) {
+        ex.printStackTrace();
+        System.exit(1);
+      }
+
     }
+
   }
 
   /** This method coordinates the construction of the inverted index. It calls three methods
@@ -76,14 +80,15 @@ public class UAInvertedIndex {
     stat.writeInt(size);
   }
 
-  /** This method is the first part of an algorithm that constructs a linked list.
-  For each document, it counts the frequencies of all terms in the document while it
-  arranges distinct terms in sorted order. Afterwards, it writes the terms to the hard drive
-  in sorted order, as temporary files. It also creates the map.raf file.
+  /** This method is the first phase of the algorithm that creates an inverted index.
+  It uses a map to count the frequencies of all terms in an individual document, and it
+  arranges the distinct terms in sorted order. Afterwards, it writes the terms within the map to the hard drive,
+  in sorted order, as temporary files. The global hash table will store the document frequency for each term.
+  The method also creates the map.raf file, which maps document IDs to document names.
   @param inDir An input directory of tokenized files.
   @param outDir The output directory for random access files.
   @param tmpDir The output directory for the temporary files.
-  @return The number of documents processed by the method.
+  @return The number of documents, or document IDs, processed by the method.
   */
 
   public static int algoOne(File inDir, File outDir, File tmpDir) {
@@ -139,9 +144,8 @@ public class UAInvertedIndex {
     return docID;
   }
 
-  /** This method writes sorted files to a temporary directory. It also increments the
-  count for each term in the Map that's present in the global hash table,
-  which is the document count for that particular term.
+  /** This method writes sorted files to a temporary directory. It also uses the global hash table to count
+  the number of documents that each distinct term appears in.
   @param bw The BufferedWriter linked to the temporary directory.
   @param ht A data structure that has terms in sorted order.
   @param docID The document ID for the current document.
@@ -172,8 +176,8 @@ public class UAInvertedIndex {
 
   }
 
-  /** This method creates the post.raf and dictionary file. It takes a directory of merged files
-  and combines them into a postings file. Aftwards, the method writes the global hash table to the
+  /** This method is the second phase of the algorithm that creates an inverted index.
+  It takes a directory of merged files and combines them into a postings file. Aftwards, the method writes the global hash table to the
   hard drive in hash order as the dictionary file.
   @param inDir A directory of merged files.
   @param outDir The directory for the random access files.
@@ -365,7 +369,6 @@ public class UAInvertedIndex {
 
   /** Instead of iterating accross the whole array, it opens the files at p and q+1,
      and merges them. It erases the previous files and stores the new file at A[p].
-
      For example, suppose we have five files. First, it would merge the files at index 0 and 1.
      Then, it would merge the files at 2 and 3. Now, the size of the segment will grow. The method
      would merge file 0 and file 2. Last, the method would merge file 0 and 4.
@@ -491,7 +494,7 @@ public class UAInvertedIndex {
   }
 
   /** A method used to format the records for the temporary files. This application uses
-  a substring to compare terms, so it's necessary to write formatted records.
+  a substring to compare terms, so it's necessary to write fixed length records.
   @param str An input String.
   @param limit The final size of the output String.
   @param id A document ID.

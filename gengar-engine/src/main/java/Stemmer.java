@@ -365,7 +365,7 @@ class Stemmer {
     i_end = k+1; i = 0;
   }
 
-/** Test program for demonstrating the Stemmer.  It reads text from a
+/** Test method for demonstrating the Stemmer.  It reads text from a
   * a list of files, stems each word, and writes the result to standard
   * output. Note that the word stemmed is expected to be in lower case:
   * forcing lower case must be done outside the Stemmer class.

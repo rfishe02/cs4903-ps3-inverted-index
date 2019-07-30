@@ -16,6 +16,11 @@ public class TermData {
   private int start;
   private float idf;
 
+  /**
+  @param term A term.
+  @param docCount The number of documents that the term appears in.
+  */
+
   public TermData(String term, int docCount) {
     this.term = term;
     this.docCount = docCount;

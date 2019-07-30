@@ -28,9 +28,11 @@ public class Search extends HttpServlet {
 
    }
 
-   /** This method uses a query object to conduct a search, using the query from the web interface.
-   @param request
-   @param response
+   /** This method uses a query object to conduct a search with the form data from the web interface.
+   If the result is valid, this method formats the String for the Search.js script. The Search.js script
+   splits the result at certain points and creates cards for each document the result.
+   @param request A request from the interface.
+   @param response A response to the interface.
    */
 
    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -154,7 +156,6 @@ public class Search extends HttpServlet {
       }
 
       out.close();
-
    }
 
    public void destroy() {
