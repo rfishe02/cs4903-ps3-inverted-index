@@ -138,7 +138,6 @@ public class UAQuery {
         i++;
       } while( i < seed && record.trim().compareToIgnoreCase(NA) != 0 && record.trim().compareToIgnoreCase(query[a]) != 0);
 
-
       if(record.trim().compareToIgnoreCase(NA) != 0) {
 
         count = dict.readInt();
@@ -314,6 +313,10 @@ public class UAQuery {
   @param s An input String.
   @param limit The desired length of a the resulting String.
   @return A normalized String.
+  */
+
+  /* Substitute this method with the Tokenizer used to create the tokens for this project.
+    (Create a method that could accept the String and return a list.)
   */
 
   public String convertText(String s, int limit) {

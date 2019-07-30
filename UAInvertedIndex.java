@@ -207,6 +207,10 @@ public class UAInvertedIndex {
       RandomAccessFile post = new RandomAccessFile(outDir.getPath()+"/post.raf","rw"); // Create & open a new file for postings, post.raf .
       post.seek(0);
 
+      /*
+      Consider using a data structure, such as a priority queue, to improve the runtime of this algorithm.
+      */
+
       while(nullCount < br.length) {
         nullCount = 0;
         br[topInd].mark(100);
@@ -262,7 +266,7 @@ public class UAInvertedIndex {
         rtf = (float) Double.parseDouble( top.substring( (STR_LEN+1 + DOCID_LEN), top.length() ) );
         idf = (float) Math.log( (double) size / t.getCount() ); // Calculate inverse document frequency for term from gh(t).numberOfDocuments .
 
-        t.setStart(recordCount);  // Update the start field for the token in the global hash table.
+        t.setStart(recordCount);  // Update the start field for the token in the global hash table. ** FIX THIS, IT SHOULD HAPPEN ONCE PER TERM. **
         //gh.put( t );
 
         post.writeInt( Integer.parseInt( top.substring(STR_LEN+1,STR_LEN+1 + DOCID_LEN).trim() ) ); // Write postings record for the token (documentID, termFrequency, OR rtf * idf) .
